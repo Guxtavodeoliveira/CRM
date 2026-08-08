@@ -77,9 +77,21 @@ document.getElementById("dealOverlay").addEventListener("click", e => {
 window.addEventListener("beforeunload", () => { if(saveTimer) writeToFile(); });
 
 ligarUsuario();
-iniciarUsuario();
 ligarRelatorios();
 ligarPedidoModal();
 ligarEmpresa();
 ligarAgendar();
-iniciarArmazenamento();
+
+/* Com login configurado: exige a sessão e busca os dados no banco.
+   Sem configuração (uso local): continua no modo arquivo. */
+(async () => {
+  if(sb){
+    const user = await exigirLogin();
+    if(!user) return;
+    await iniciarUsuario();
+    const ok = await iniciarBanco();
+    if(ok) return;
+  }else{
+    iniciarArmazenamento();
+  }
+})();

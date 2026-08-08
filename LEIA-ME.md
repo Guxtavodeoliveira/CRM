@@ -3,6 +3,10 @@
 Kanban de clientes que grava tudo em **um arquivo `.json` na pasta do seu computador**.
 Nada vai para a internet: o arquivo é seu, e é ele que você leva ao trocar de máquina.
 
+> **Atenção:** a partir da versão com login, o sistema usa o banco na nuvem.
+> Este arquivo descreve também o modo antigo (arquivo .json), que continua
+> disponível como emergência. Veja `COMO-USAR-AGORA.md`.
+
 ## Como abrir
 
 1. Descompacte a pasta em algum lugar fixo (ex.: `Documentos\CRM`).

@@ -52,7 +52,26 @@ function icon(name, size, width){
 }
 
 /* ---------- ids ---------- */
-function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+/* Gera UUID de verdade quando o navegador permite. Isso faz o id usado
+   na tela ser o MESMO id da linha no banco — sem tabela de conversão. */
+function uid(){
+  if(typeof crypto !== "undefined" && crypto.randomUUID){
+    try{ return crypto.randomUUID(); }catch(e){}
+  }
+  // reserva: monta um uuid v4 na mão
+  const h = "0123456789abcdef";
+  let s = "";
+  for(let i = 0; i < 36; i++){
+    if(i === 8 || i === 13 || i === 18 || i === 23) s += "-";
+    else if(i === 14) s += "4";
+    else if(i === 19) s += h[(Math.random()*4|0) + 8];
+    else s += h[Math.random()*16|0];
+  }
+  return s;
+}
+function ehUUID(v){
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||""));
+}
 
 /* ---------- escapes ---------- */
 function esc(s){

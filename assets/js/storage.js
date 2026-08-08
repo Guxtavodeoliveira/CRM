@@ -234,7 +234,44 @@ async function writeToFile(){
 function salvar(){
   if(dados) dados.atualizadoEm = new Date().toISOString();
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(writeToFile, 180);
+  if(modoBanco){
+    marcarSalvando();
+    saveTimer = setTimeout(sincronizar, 700);
+  }else{
+    saveTimer = setTimeout(writeToFile, 180);
+  }
+}
+
+/* Quando existe login configurado, o sistema trabalha com o banco
+   e a tela de "conectar arquivo" nem aparece. */
+let modoBanco = false;
+
+async function iniciarBanco(){
+  try{
+    dados = await carregarDoBanco();
+    if(!dados) return false;
+    modoBanco = true;
+    mostrarApp();
+    document.getElementById("fileChip").style.display = "none";
+    const chip = document.getElementById("syncChip");
+    if(chip) chip.style.display = "inline-flex";
+    marcarSalvo(true);
+    render();
+    return true;
+  }catch(e){
+    console.error("carregar do banco:", e);
+    document.getElementById("connectTitle").textContent = "Não consegui carregar seus dados";
+    document.getElementById("connectText").textContent =
+      "O servidor respondeu com: " + ((e && e.message) || e) +
+      ". Confira sua internet e tente de novo.";
+    document.getElementById("connectActions").innerHTML =
+      '<button class="btn btn-primary" id="tentarDeNovo">Tentar de novo</button>' +
+      '<button class="btn" id="usarArquivo">Usar arquivo local</button>';
+    document.getElementById("tentarDeNovo").onclick = () => location.reload();
+    document.getElementById("usarArquivo").onclick = () => { modoBanco = false; iniciarArmazenamento(); };
+    mostrarConexao();
+    return false;
+  }
 }
 
 /* ---------------- tela de conexão ---------------- */

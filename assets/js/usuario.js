@@ -7,7 +7,7 @@ let perfilAtual = null;
 async function iniciarUsuario(){
   if(!sb) return;                       // sem configuração: segue no modo arquivo
 
-  const user = await exigirLogin();     // manda para o login se não estiver logado
+  const { data:{ user } } = await sb.auth.getUser();
   if(!user) return;
 
   perfilAtual = await carregarPerfil();
