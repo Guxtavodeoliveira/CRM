@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar — Shaliach</title>
+<link rel="icon" href="img/faviconlogo.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="img/logo-icone.svg">
+<meta name="theme-color" content="#4F46E5">
+<link rel="stylesheet" href="assets/css/auth.css">
+</head>
+<body>
+<div class="auth">
+  <div class="auth-marca">
+    <img src="img/logo-branco.svg" alt="Shaliach — CRM para representantes">
+    <h2>Seu funil, seus clientes e suas comissões — em um lugar só.</h2>
+    <p>Feito para representante comercial que trabalha com mais de uma marca e precisa saber, sem procurar, o que fazer hoje.</p>
+    <ul class="auth-lista">
+      <li><span class="pt">✓</span> Funil separado para cada empresa que você representa</li>
+      <li><span class="pt">✓</span> Agenda de visitas, ligações e WhatsApp do dia</li>
+      <li><span class="pt">✓</span> Pedidos com comissão calculada e relatório por período</li>
+    </ul>
+  </div>
+  <div class="auth-form">
+    <div class="auth-caixa">
+      <h1>Entrar</h1>
+      <p class="sub">Bem-vindo de volta. Acesse sua conta para continuar.</p>
+
+      <div id="authAviso" class="aviso hidden"></div>
+
+      <form id="formLogin" novalidate>
+        <div class="campo">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" placeholder="voce@exemplo.com" autocomplete="username" required>
+        </div>
+        <div class="campo">
+          <label for="senha">Senha</label>
+          <div class="campo-senha">
+            <input type="password" id="senha" placeholder="Sua senha" autocomplete="current-password" required>
+            <button type="button" class="ver-senha" data-ver="senha" aria-label="Mostrar senha">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          </div>
+        </div>
+
+        <div class="linha-extra">
+          <label class="lembrar"><input type="checkbox" id="lembrar" checked> Manter conectado</label>
+          <a href="recuperar-senha.html">Esqueci minha senha</a>
+        </div>
+
+        <button type="submit" class="btn-auth" id="btnEntrar">Entrar</button>
+      </form>
+
+      <div class="rodape-auth">
+        Ainda não tem conta? <a href="cadastro.html">Criar conta</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="assets/js/vendor/supabase.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/tela-comum.js"></script>
+<script src="assets/js/tela-login.js"></script>
+</body>
+</html>

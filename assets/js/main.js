@@ -76,6 +76,8 @@ document.getElementById("dealOverlay").addEventListener("click", e => {
 /* avisa se a aba fechar antes de gravar */
 window.addEventListener("beforeunload", () => { if(saveTimer) writeToFile(); });
 
+ligarUsuario();
+iniciarUsuario();
 ligarRelatorios();
 ligarPedidoModal();
 ligarEmpresa();

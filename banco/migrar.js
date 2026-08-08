@@ -34,10 +34,60 @@ if(!URL || !DONO){
 
 // o Supabase exige SSL; um Postgres local normalmente não tem
 const usaSSL = !/localhost|127\.0\.0\.1/.test(URL) && process.env.PGSSL !== "off";
-const db = new Client({
-  connectionString: URL,
-  ssl: usaSSL ? { rejectUnauthorized:false } : false
-});
+
+/* Monta a conexão a partir da URL. A senha é tratada à parte porque
+   senhas com @ # ? / e outros símbolos quebram quando coladas dentro
+   da URL. Se você informar DB_PASSWORD, ela tem prioridade e pode
+   conter qualquer caractere. */
+function montarConexao(){
+  /* Leitura manual da URI. O parser padrão do JavaScript rejeita senhas
+     com símbolos como @ # ? / — justamente as que o Supabase gera.
+     A senha é o trecho entre o primeiro ":" e o ÚLTIMO "@". */
+  const m = URL.match(/^postgres(?:ql)?:\/\/([^:@\/]+)(?::(.*))?@([^@\/:?]+)(?::(\d+))?(?:\/([^?]*))?/i);
+  if(!m){
+    console.error(`
+Não entendi a DATABASE_URL. Ela precisa ter este formato:
+
+  postgresql://usuario:senha@servidor:5432/postgres
+
+Copie de novo em Project Settings > Database > Connection string > URI.
+`);
+    process.exit(1);
+  }
+  const [, usuario, senhaUrl, host, porta, banco] = m;
+
+  let senha = process.env.DB_PASSWORD || "";
+  if(!senha && senhaUrl){
+    // só decodifica se a senha não veio separada
+    try{ senha = decodeURIComponent(senhaUrl); }catch(e){ senha = senhaUrl; }
+  }
+
+  if(!senha || /^\[.*\]$/.test(senha)){
+    console.error(`
+A senha do banco não foi informada.
+
+Se a URI ainda está com [YOUR-PASSWORD], não precisa trocar lá dentro.
+Informe a senha separadamente, assim:
+
+  set DB_PASSWORD=sua-senha-do-banco
+
+Esse jeito também evita erro quando a senha tem simbolos como @ # ? /
+`);
+    process.exit(1);
+  }
+
+  return {
+    host,
+    port: Number(porta) || 5432,
+    user: decodeURIComponent(usuario),
+    password: senha,
+    database: (banco || "postgres") || "postgres",
+    ssl: usaSSL ? { rejectUnauthorized:false } : false
+  };
+}
+
+const conexao = montarConexao();
+const db = new Client(conexao);
 
 /* upsert genérico usando legacy_id como chave */
 async function up(tabela, legacy, campos){
@@ -70,8 +120,23 @@ const dt = v => (v && String(v).trim()) ? String(v).slice(0,10) : null;
 const ts = v => v ? new Date(v).toISOString() : null;
 
 (async () => {
+  if(!fs.existsSync(ARQ)){
+    console.error(`Não achei o arquivo: ${ARQ}\nConfira o caminho do seu crm-dados.json.`);
+    process.exit(1);
+  }
   const dados = JSON.parse(fs.readFileSync(ARQ, "utf8"));
-  await db.connect();
+
+  console.log(`Conectando em ${conexao.host} ...`);
+  try{
+    await db.connect();
+  }catch(e){
+    console.error("\nNão consegui conectar ao banco:\n  " + e.message);
+    if(/password authentication failed/i.test(e.message))
+      console.error("\n  A senha está errada. É a Database Password que você guardou ao criar o projeto\n  (não é a senha do seu login do Supabase).");
+    if(/ENOTFOUND|EAI_AGAIN/i.test(e.message))
+      console.error("\n  O endereço do banco está errado. Copie de novo a URI em Project Settings > Database.");
+    process.exit(1);
+  }
   await db.query("begin");
 
   try{
@@ -209,7 +274,11 @@ Confira no SQL Editor:
 `);
   }catch(e){
     await db.query("rollback");
-    console.error("Nada foi gravado. Erro:", e.message);
+    console.error("\nNada foi gravado (a migração é toda ou nada). Erro:\n  " + e.message);
+    if(/relation .* does not exist/i.test(e.message))
+      console.error("\n  Parece que o schema.sql ainda não foi executado no Supabase.");
+    if(/violates foreign key|uuid/i.test(e.message))
+      console.error("\n  Confira se o OWNER_ID é o UID do usuário criado em Authentication > Users.");
     process.exitCode = 1;
   }finally{
     await db.end();

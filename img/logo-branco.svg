@@ -1,0 +1,42 @@
+<svg viewBox="0 0 680 160" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#312E81"/>
+    </linearGradient>
+    <radialGradient id="medallionGrad2" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#433DAE"/>
+      <stop offset="100%" stop-color="#2A2570"/>
+    </radialGradient>
+    <linearGradient id="goldGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F3D68F"/>
+      <stop offset="55%" stop-color="#D9A63E"/>
+      <stop offset="100%" stop-color="#B47F1F"/>
+    </linearGradient>
+  </defs>
+
+  <!-- mark, scaled down and translated to sit at left -->
+  <g transform="translate(8,8) scale(0.28125)">
+    <rect width="512" height="512" rx="104" fill="url(#bgGrad2)"/>
+    <circle cx="256" cy="256" r="204" fill="none" stroke="#D9A63E" stroke-width="3" stroke-dasharray="1.5 9" stroke-linecap="round" opacity="0.85"/>
+    <circle cx="256" cy="256" r="196" fill="none" stroke="#F3D68F" stroke-width="1" opacity="0.5"/>
+    <circle cx="256" cy="256" r="188" fill="url(#medallionGrad2)" stroke="#D9A63E" stroke-width="2.5" opacity="0.97"/>
+    <g transform="translate(3,4)" opacity="0.35" fill="#1A1750">
+      <path d="M190,352 Q256,388 322,352 L322,338 Q256,370 190,338 Z"/>
+      <path d="M200,345 C196,300 188,260 178,205 C175,188 179,168 196,158 C212,167 214,185 213,203 C219,255 222,300 228,345 Z"/>
+      <path d="M244,342 C244,280 244,210 244,150 C244,133 250,122 256,120 C262,122 268,133 268,150 C268,210 268,280 268,342 Z"/>
+      <path d="M312,345 C316,300 324,260 334,205 C337,188 333,168 316,158 C300,167 298,185 299,203 C293,255 290,300 284,345 Z"/>
+    </g>
+    <g fill="url(#goldGrad2)">
+      <path d="M190,352 Q256,388 322,352 L322,338 Q256,370 190,338 Z"/>
+      <path d="M200,345 C196,300 188,260 178,205 C175,188 179,168 196,158 C212,167 214,185 213,203 C219,255 222,300 228,345 Z"/>
+      <path d="M244,342 C244,280 244,210 244,150 C244,133 250,122 256,120 C262,122 268,133 268,150 C268,210 268,280 268,342 Z"/>
+      <path d="M312,345 C316,300 324,260 334,205 C337,188 333,168 316,158 C300,167 298,185 299,203 C293,255 290,300 284,345 Z"/>
+    </g>
+    <path d="M244,150 C244,133 250,122 256,120" fill="none" stroke="#FCE9BC" stroke-width="2" opacity="0.8" stroke-linecap="round"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="160" y="78" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="700" letter-spacing="4" fill="#FFFFFF">SHALIACH</text>
+  <text x="161" y="108" font-family="Georgia, 'Times New Roman', serif" font-size="17" letter-spacing="2" fill="#F3D68F">CRM PARA REPRESENTANTES</text>
+</svg>

@@ -44,6 +44,36 @@
 
     <div class="topbar-spacer"></div>
 
+    <div class="menu-wrap" id="userWrap">
+      <button class="user-btn" id="userBtn" aria-haspopup="true" aria-expanded="false">
+        <span class="user-av" id="userIniciais">?</span>
+        <span class="user-nome" id="userNome">Carregando...</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="menu" id="userMenu">
+        <div class="user-topo">
+          <span class="user-av grande" id="userIniciais2">?</span>
+          <div>
+            <b id="userNome2">—</b>
+            <i id="userEmail">—</i>
+          </div>
+        </div>
+        <button id="btnPerfil">
+          <span class="mic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          <span><b>Meus dados</b><i>Nome e telefone do representante</i></span>
+        </button>
+        <button id="btnTrocarSenha">
+          <span class="mic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+          <span><b>Trocar minha senha</b><i>Enviamos um link por e-mail</i></span>
+        </button>
+        <hr>
+        <button id="btnSair" class="perigo">
+          <span class="mic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg></span>
+          <span><b>Sair da conta</b></span>
+        </button>
+      </div>
+    </div>
+
     <div class="file-chip" id="fileChip" style="display:none">
       <i class="dot"></i>
       <span id="fileChipName"></span>
@@ -425,6 +455,42 @@
   </div>
 </div>
 
+<!-- ==================== MODAL: MEUS DADOS ==================== -->
+<div class="overlay" id="perfilOverlay">
+  <div class="modal narrow" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="avatar-sq">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div style="flex:1"><h2>Meus dados</h2><div class="sub">Quem é o representante deste funil</div></div>
+      <button class="icon-btn lg" id="perfilFechar" aria-label="Fechar">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="grid" style="padding-top:16px">
+        <div class="field full">
+          <label for="pf_nome">Nome</label>
+          <input class="inp" id="pf_nome" placeholder="Seu nome completo" autocomplete="name">
+        </div>
+        <div class="field full">
+          <label for="pf_email">E-mail</label>
+          <input class="inp" id="pf_email" disabled>
+          <span class="hint">O e-mail é o seu login e não pode ser alterado aqui.</span>
+        </div>
+        <div class="field full">
+          <label for="pf_telefone">Telefone</label>
+          <input class="inp" id="pf_telefone" placeholder="(00) 00000-0000">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="perfilCancelar">Cancelar</button>
+      <button class="btn btn-primary" id="perfilSalvar">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== MODAL: RELATÓRIO ==================== -->
 <div class="overlay" id="relOverlay">
   <div class="modal" style="max-width:960px" role="dialog" aria-modal="true">
@@ -538,6 +604,9 @@
   </div>
 </div>
 
+<script src="assets/js/vendor/supabase.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/auth.js"></script>
 <script src="assets/js/vendor/xlsx.mini.min.js"></script>
 <script src="assets/js/util.js"></script>
 <script src="assets/js/storage.js"></script>
@@ -548,6 +617,7 @@
 <script src="assets/js/relatorios.js"></script>
 <script src="assets/js/agenda.js"></script>
 <script src="assets/js/exportar-agendor.js"></script>
+<script src="assets/js/usuario.js"></script>
 <script src="assets/js/main.js"></script>
 </body>
 </html>
