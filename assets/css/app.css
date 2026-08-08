@@ -1094,3 +1094,63 @@ select.inp{appearance:none;}
 .sync-chip.erro .dot{background:var(--red);}
 @keyframes pisca{0%,100%{opacity:1}50%{opacity:.25}}
 @media (max-width:820px){ .sync-chip span{display:none;} }
+
+/* =========================================================
+   Abertura (evita o piscar da tela)
+   ========================================================= */
+#splash{
+  position:fixed;inset:0;z-index:400;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  transition:opacity .25s;
+}
+#splash.saindo{opacity:0;pointer-events:none;}
+#splash img{width:100%;max-width:250px;}
+.splash-barra{width:170px;height:3px;background:var(--line);border-radius:20px;overflow:hidden;}
+.splash-barra i{
+  display:block;width:40%;height:100%;border-radius:20px;background:var(--brand);
+  animation:desliza 1.05s ease-in-out infinite;
+}
+@keyframes desliza{
+  0%{transform:translateX(-110%)}
+  100%{transform:translateX(320%)}
+}
+
+/* =========================================================
+   Seletor de funis
+   ========================================================= */
+.funil-btn{
+  display:flex;align-items:center;gap:7px;
+  border:1px solid transparent;background:transparent;
+  color:var(--brand);font-size:15px;font-weight:700;letter-spacing:-.01em;
+  padding:5px 9px;border-radius:var(--r-sm);max-width:230px;
+}
+.funil-btn:hover{background:var(--brand-50);}
+.funil-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#funilMenu{min-width:280px;}
+#funilMenu button.atual{background:var(--brand-50);}
+#funilMenu button.atual b{color:var(--brand-700);}
+#funilMenu button.atual i{color:var(--brand);}
+.menu-vazio{font-size:12.5px;color:var(--muted-2);padding:8px 10px;}
+
+/* =========================================================
+   Pedido atual em destaque na lateral do negócio
+   ========================================================= */
+.ped-destaque{
+  display:block;width:100%;text-align:left;margin-bottom:10px;
+  border:1px solid var(--brand-100);background:var(--brand-50);
+  border-radius:var(--r-md);padding:12px 14px;
+}
+.ped-destaque:hover{background:var(--brand-100);}
+.pd-topo{
+  display:flex;align-items:center;gap:7px;
+  font-size:11.5px;font-weight:700;color:var(--brand-700);
+  text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;
+}
+.pd-valor{
+  display:block;font-size:24px;font-weight:800;
+  letter-spacing:-.02em;color:var(--ink);
+}
+.pd-comis{
+  display:block;font-size:12px;color:#0F8A5F;margin-top:4px;font-weight:600;
+}
+.pd-comis b{font-weight:800;}

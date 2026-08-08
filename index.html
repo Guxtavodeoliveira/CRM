@@ -12,8 +12,14 @@
 </head>
 <body>
 
+<!-- ==================== ABERTURA (evita piscar de tela) ==================== -->
+<div id="splash">
+  <img src="img/logo.svg" alt="Shaliach">
+  <div class="splash-barra"><i></i></div>
+</div>
+
 <!-- ==================== TELA DE CONEXÃO DO ARQUIVO ==================== -->
-<div id="connectScreen">
+<div id="connectScreen" class="hidden">
   <div class="connect-card">
     <img src="img/logo.svg" alt="Shaliach — CRM para representantes" class="connect-logo-img">
     <h1 id="connectTitle">Conectar arquivo de dados</h1>
@@ -34,7 +40,27 @@
     <div class="brand">
       <img src="img/logo.svg" alt="Shaliach" class="brand-logo">
       <span class="brand-sep"></span>
-      <input id="boardName" value="Meu funil" aria-label="Nome do funil">
+
+      <div class="menu-wrap" id="funilWrap">
+        <button class="funil-btn" id="funilBtn" aria-haspopup="true" aria-expanded="false">
+          <span id="funilNome">Meu funil</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="menu" id="funilMenu" style="left:0;right:auto">
+          <div class="menu-head">Meus funis</div>
+          <div id="funilLista"></div>
+          <hr>
+          <button id="btnNovoFunil">
+            <span class="mic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+            <span><b>Novo funil</b><i>Para outra empresa que você representa</i></span>
+          </button>
+          <button id="btnRenomearFunil">
+            <span class="mic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>
+            <span><b>Renomear este funil</b></span>
+          </button>
+        </div>
+      </div>
+      <input id="boardName" value="Meu funil" aria-label="Nome do funil" class="hidden">
     </div>
 
     <div class="topbar-metric">
@@ -93,16 +119,10 @@
       <input id="searchInput" type="search" placeholder="Buscar no funil" aria-label="Buscar no funil">
     </div>
 
-    <div class="seg" role="group" aria-label="Filtrar por situação">
-      <button data-filter="todos" class="on">Todos</button>
-      <button data-filter="andamento">Em andamento</button>
-      <button data-filter="ganho">Ganhos</button>
-      <button data-filter="perdido">Perdidos</button>
-    </div>
-
     <div class="seg" id="agendaSeg" role="group" aria-label="Atividades agendadas">
       <button data-agenda="hoje"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.5 2"/></svg>Hoje <span class="cnt hidden" id="cntHoje"></span></button>
       <button data-agenda="amanha">Amanhã <span class="cnt hidden" id="cntAmanha"></span></button>
+      <button data-agenda="periodo">Personalizado</button>
     </div>
 
     <div class="topbar-spacer"></div>
@@ -134,8 +154,8 @@
     </button>
     <input type="file" id="importFile" accept=".json,application/json" class="hidden">
 
-    <div class="seg" style="align-items:center;gap:4px;padding-left:9px" title="Gerar as planilhas .xlsx no formato de importação do Agendor">
-      <span style="font-size:11px;font-weight:800;letter-spacing:.05em;color:var(--muted-2)">AGENDOR</span>
+    <div class="seg" style="align-items:center;gap:4px;padding-left:9px" title="Baixar planilhas .xlsx com seus dados">
+      <span style="font-size:11px;font-weight:800;letter-spacing:.05em;color:var(--muted-2)">PLANILHAS</span>
       <button id="agNegocios">Negócios</button>
       <button id="agCadastros">Cadastros</button>
     </div>
@@ -247,36 +267,6 @@
             <label for="f_dataInicio">Data de início</label>
             <input class="inp" id="f_dataInicio" type="date">
           </div>
-        </div>
-      </section>
-
-      <!-- Privacidade -->
-      <section class="sec">
-        <h3>Privacidade</h3>
-        <p class="sec-desc">Quem pode ver o histórico e editar essa empresa?</p>
-        <label class="radio-row">
-          <input type="radio" name="priv" value="todos" id="f_priv_todos" checked>
-          <div>
-            <div class="t">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1"/><circle cx="9.5" cy="7" r="3.5"/><path d="M22 20v-1a4 4 0 0 0-3-3.8"/></svg>
-              Todos
-            </div>
-            <div class="d">Todos os usuários da conta terão acesso.</div>
-          </div>
-        </label>
-        <label class="radio-row">
-          <input type="radio" name="priv" value="restrito" id="f_priv_restrito">
-          <div>
-            <div class="t">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-              Acesso restrito
-            </div>
-            <div class="d">O responsável, seus líderes e os administradores da conta sempre terão acesso.<br>Você também pode conceder acesso a outros usuários.</div>
-          </div>
-        </label>
-        <div class="field" style="margin-top:14px">
-          <label for="f_acessos">Acessos adicionais</label>
-          <input class="inp" id="f_acessos" placeholder="Selecionar..." autocomplete="off">
         </div>
       </section>
 
@@ -455,6 +445,38 @@
     <div class="modal-foot">
       <button class="btn" id="schedCancel" type="button">Cancelar</button>
       <button class="btn btn-primary" id="schedSave" type="button">Agendar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: PERÍODO DA AGENDA ==================== -->
+<div class="overlay" id="periodoOverlay">
+  <div class="modal narrow" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="avatar-sq">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      </div>
+      <div style="flex:1"><h2>Escolher período</h2><div class="sub">Veja as atividades agendadas de um dia ou de um intervalo</div></div>
+      <button class="icon-btn lg" id="perFechar" aria-label="Fechar">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="grid" style="padding-top:16px">
+        <div class="field"><label for="per_de">De</label><input class="inp" id="per_de" type="date"></div>
+        <div class="field"><label for="per_ate">Até</label><input class="inp" id="per_ate" type="date"></div>
+      </div>
+      <div class="row-gap" style="margin-top:14px">
+        <button class="btn btn-sm" data-peratalho="7">Próximos 7 dias</button>
+        <button class="btn btn-sm" data-peratalho="15">Próximos 15 dias</button>
+        <button class="btn btn-sm" data-peratalho="30">Próximos 30 dias</button>
+        <button class="btn btn-sm" data-peratalho="-7">Últimos 7 dias</button>
+      </div>
+      <p class="hint" style="margin-top:12px">Deixe as duas datas iguais para ver um dia só.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="perCancelar">Cancelar</button>
+      <button class="btn btn-primary" id="perVer">Ver atividades</button>
     </div>
   </div>
 </div>

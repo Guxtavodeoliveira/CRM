@@ -280,6 +280,8 @@ function mostrarApp(){
   document.getElementById("app").classList.remove("hidden");
 }
 function mostrarConexao(){
+  const sp = document.getElementById("splash");
+  if(sp) sp.remove();
   document.getElementById("connectScreen").classList.remove("hidden");
   document.getElementById("app").classList.add("hidden");
 }

@@ -66,9 +66,6 @@ function cabecalho(card){
       <h2>${card.numero} - ${esc(card.nome)}</h2>
       <span class="period">${esc(periodo)}</span>
       <div class="deal-status">
-        <button class="st-btn ${card.status === "perdido" ? "on-lost" : ""}" data-status="perdido">${icon("flag",14,2)} Perdido</button>
-        <button class="st-btn ${card.status === "andamento" ? "on-open" : ""}" data-status="andamento">${icon("hour",14,2)} Em andamento</button>
-        <button class="st-btn ${card.status === "ganho" ? "on-won" : ""}" data-status="ganho">${icon("trophy",14,2)} Ganho</button>
         <button class="icon-btn lg" id="dealEdit" title="Editar empresa">${icon("edit",16,2)}</button>
         <button class="icon-btn lg" id="dealClose" title="Fechar">${icon("x",17,2.2)}</button>
       </div>
@@ -248,38 +245,35 @@ function painelAcoes(card){
     <div class="panel-head">Ações</div>
     <div class="panel-body">
       <div class="actions-grid">
-        <button class="btn btn-primary" data-acao="email">${icon("mail",14,2)} Enviar e-mail</button>
-        <button class="btn btn-primary" data-acao="ligar">${icon("phone",14,2)} Fazer ligação</button>
-        <button class="btn btn-primary" data-acao="proposta">${icon("doc",14,2)} Gerar proposta</button>
         <button class="btn btn-primary" data-acao="whats">${icon("whats",14,2)} Enviar WhatsApp</button>
-      </div>
-      <div class="row-gap" style="margin-top:9px">
-        <button class="btn btn-sm" data-acao="agendar_visita">${icon("pin",13,2)} Agendar visita</button>
-        <button class="btn btn-sm" data-acao="agendar_reuniao">${icon("users",13,2)} Agendar reunião</button>
+        <button class="btn btn-primary" data-acao="ligar">${icon("phone",14,2)} Fazer ligação</button>
+        <button class="btn btn-primary" data-acao="agendar_visita">${icon("pin",14,2)} Agendar visita</button>
+        <button class="btn btn-primary" data-acao="agendar_reuniao">${icon("users",14,2)} Agendar reunião</button>
+        <button class="btn btn-primary" data-acao="email">${icon("mail",14,2)} Enviar e-mail</button>
+        <button class="btn btn-primary" data-acao="proposta">${icon("doc",14,2)} Gerar proposta</button>
       </div>
     </div>
   </div>`;
 }
 
 function painelValor(card){
-  const prods = card.produtos || [];
+  const pa = typeof pedidoAtual === "function" ? pedidoAtual(card) : null;
+  const total = pa ? totalPedido(pa) : 0;
+  const comis = pa ? comissaoPedido(pa) : 0;
   return `
   <div class="panel">
-    <div class="panel-head">Valor do negócio</div>
+    <div class="panel-head">Pedido atual</div>
     <div class="panel-body">
-      <input class="value-edit" id="dealValor" value="${esc(moeda(card.valor))}" aria-label="Valor do negócio">
-      ${(() => {
-        const pa = typeof pedidoAtual === "function" ? pedidoAtual(card) : null;
-        if(!pa) return "";
-        return `<button class="ped-atalho" data-verpedidos="1">
-          ${icon("cart",13,2)} Pedido atual #${pa.numero}: <b>${moeda(totalPedido(pa))}</b>
-        </button>`;
-      })()}
-      <div class="sub-label" style="margin-top:10px">Produtos e serviços</div>
-      ${prods.length
-        ? `<div class="chips">${prods.map((p,i) => `<span class="chip">${esc(p)}<button data-rmprod="${i}" title="Remover">${icon("x",12,2.6)}</button></span>`).join("")}</div>`
-        : `<div class="chips-empty">Nenhum produto ou serviço foi adicionado a este negócio</div>`}
-      <button class="btn btn-soft btn-sm" id="dealAddProd">${icon("plus",13,2.6)} Adicionar produtos/serviços</button>
+      ${pa ? `
+        <button class="ped-destaque" data-verpedidos="1">
+          <span class="pd-topo">${icon("cart",13,2)} Pedido #${pa.numero} · ${esc(fmtData(pa.data) || "sem data")}</span>
+          <span class="pd-valor">${moeda(total)}</span>
+          ${pa.comissaoPct ? `<span class="pd-comis">Comissão ${esc(fmtPct(pa.comissaoPct))} · <b>${moeda(comis)}</b></span>` : ""}
+        </button>`
+        : `<div class="chips-empty" style="margin-bottom:10px">Nenhum pedido lançado para este cliente.</div>`}
+      <button class="btn btn-soft btn-sm btn-block" data-verpedidos="1">
+        ${icon("cart",13,2)} ${pa ? "Ver todos os pedidos" : "Lançar o primeiro pedido"}
+      </button>
     </div>
   </div>`;
 }
@@ -408,10 +402,6 @@ function ligarNegocio(card){
   box.querySelector("#dealClose").onclick = fecharNegocio;
   box.querySelector("#dealEdit").onclick = () => abrirEmpresa(card.id);
 
-  box.querySelectorAll("[data-status]").forEach(b => {
-    b.onclick = () => definirStatus(card.id, b.dataset.status);
-  });
-
   box.querySelectorAll("[data-star]").forEach(b => {
     b.onclick = () => {
       const n = Number(b.dataset.star);
@@ -502,32 +492,6 @@ function ligarNegocio(card){
   // ações rápidas
   box.querySelectorAll("[data-acao]").forEach(b => {
     b.onclick = () => acaoRapida(card, b.dataset.acao);
-  });
-
-  // valor
-  const valorEl = box.querySelector("#dealValor");
-  valorEl.onchange = () => {
-    card.valor = parseMoeda(valorEl.value);
-    card.atualizadoEm = new Date().toISOString();
-    valorEl.value = moeda(card.valor);
-    salvar(); render();
-  };
-
-  // produtos
-  box.querySelector("#dealAddProd").onclick = async () => {
-    const p = await pedirTexto("Adicionar produto ou serviço", "Nome do produto/serviço", "");
-    if(!p) return;
-    card.produtos = card.produtos || [];
-    if(!card.produtos.includes(p)) card.produtos.push(p);
-    if(!dados.listas.produtos.includes(p)) dados.listas.produtos.push(p);
-    card.atualizadoEm = new Date().toISOString();
-    salvar(); renderNegocio(); render();
-  };
-  box.querySelectorAll("[data-rmprod]").forEach(b => {
-    b.onclick = () => {
-      card.produtos.splice(Number(b.dataset.rmprod), 1);
-      salvar(); renderNegocio(); render();
-    };
   });
 
   // pessoa (abre o cadastro na seção de pessoas)

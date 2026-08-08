@@ -9,7 +9,7 @@ let empPessoas = [];
 const CAMPOS = [
   ["f_nome","nome"],["f_cnpj","cnpj"],["f_razao","razaoSocial"],
   ["f_categoria","categoria"],["f_origem","origem"],["f_responsavel","responsavel"],
-  ["f_setor","setor"],["f_descricao","descricao"],["f_acessos","acessos"],
+  ["f_setor","setor"],["f_descricao","descricao"],
   ["f_email","email"],["f_whatsapp","whatsapp"],["f_telefone","telefone"],
   ["f_celular","celular"],["f_fax","fax"],["f_ramal","ramal"],["f_website","website"],
   ["f_cep","cep"],["f_pais","pais"],["f_bairro","bairro"],["f_rua","rua"],
@@ -39,10 +39,6 @@ function abrirEmpresa(cardId, columnId){
   document.getElementById("f_valor").value = card && card.valor ? moeda(card.valor) : "";
   document.getElementById("f_dataInicio").value = card && card.dataInicio ? card.dataInicio.slice(0,10)
     : new Date().toISOString().slice(0,10);
-
-  const priv = card ? card.privacidade : "todos";
-  document.getElementById("f_priv_todos").checked = priv !== "restrito";
-  document.getElementById("f_priv_restrito").checked = priv === "restrito";
 
   const redes = (card && card.redes) || {};
   document.getElementById("f_facebook").value  = redes.facebook  || "";
@@ -225,7 +221,6 @@ function salvarEmpresa(){
   card.columnId = document.getElementById("f_etapa").value;
   card.valor = parseMoeda(document.getElementById("f_valor").value);
   card.dataInicio = document.getElementById("f_dataInicio").value;
-  card.privacidade = document.getElementById("f_priv_restrito").checked ? "restrito" : "todos";
   card.produtos = [...empProdutos];
   card.pessoas = empPessoas.filter(p => (p.nome || p.email || p.celular || p.whatsapp || p.telefone));
   card.redes = {

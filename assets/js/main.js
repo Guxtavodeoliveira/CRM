@@ -9,14 +9,6 @@ document.getElementById("boardName").addEventListener("change", e => {
   salvar(); render();
 });
 
-document.querySelectorAll("[data-filter]").forEach(b => {
-  b.onclick = () => {
-    filtroStatus = b.dataset.filter;
-    document.querySelectorAll("[data-filter]").forEach(x => x.classList.toggle("on", x === b));
-    render();
-  };
-});
-
 document.getElementById("newDealBtn").onclick = () => abrirEmpresa(null, dados.columns[0].id);
 document.getElementById("switchFileBtn").onclick = mostrarConexao;
 
@@ -77,6 +69,8 @@ document.getElementById("dealOverlay").addEventListener("click", e => {
 window.addEventListener("beforeunload", () => { if(saveTimer) writeToFile(); });
 
 ligarUsuario();
+ligarFunis();
+ligarEscolhaPeriodo();
 ligarRelatorios();
 ligarPedidoModal();
 ligarEmpresa();
@@ -84,14 +78,21 @@ ligarAgendar();
 
 /* Com login configurado: exige a sessão e busca os dados no banco.
    Sem configuração (uso local): continua no modo arquivo. */
+function esconderSplash(){
+  const sp = document.getElementById("splash");
+  if(sp){ sp.classList.add("saindo"); setTimeout(() => sp.remove(), 260); }
+}
+
 (async () => {
   if(sb){
     const user = await exigirLogin();
     if(!user) return;
     await iniciarUsuario();
     const ok = await iniciarBanco();
+    esconderSplash();
     if(ok) return;
   }else{
-    iniciarArmazenamento();
+    await iniciarArmazenamento();
+    esconderSplash();
   }
 })();

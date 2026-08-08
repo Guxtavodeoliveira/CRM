@@ -10,6 +10,8 @@
    ========================================================= */
 
 let funilAtual = null;         // { id, nome, representada_id }
+let listaFunis = [];           // todos os funis do usuário
+const CHAVE_FUNIL = "shaliachFunilAtual";
 let fotoAnterior = null;       // cópia do estado, para comparar
 let sincronizando = false;
 let novaSincPendente = false;
@@ -57,7 +59,11 @@ async function carregarDoBanco(){
       funil_id: f.id, nome, posicao: i, owner_id: user.id
     })));
   }
-  funilAtual = funis[0];
+  listaFunis = funis;
+  // volta para o último funil que o usuário estava usando
+  const salvo = localStorage.getItem(CHAVE_FUNIL);
+  funilAtual = funis.find(f => f.id === salvo) || funis[0];
+  localStorage.setItem(CHAVE_FUNIL, funilAtual.id);
 
   // --- tudo em paralelo ---
   const [etapas, negocios, clientes, pessoas, atividades, pedidos, itens, comentarios, opcoes] =
@@ -402,4 +408,52 @@ function marcarSalvando(){
   if(!chip) return;
   chip.className = "sync-chip salvando";
   chip.innerHTML = `<i class="dot"></i><span>Salvando...</span>`;
+}
+
+
+/* =========================================================
+   Vários funis — um para cada empresa representada
+   ========================================================= */
+async function criarFunil(nome){
+  const { data:{ user } } = await sb.auth.getUser();
+  if(!user) throw new Error("Sessão expirada");
+
+  const { data: rep, error: e1 } = await sb.from("representadas")
+    .insert({ nome, owner_id:user.id }).select("id").single();
+  if(e1) throw e1;
+
+  const { data: f, error: e2 } = await sb.from("funis")
+    .insert({ nome, representada_id:rep.id, owner_id:user.id })
+    .select("id, nome, representada_id").single();
+  if(e2) throw e2;
+
+  const padrao = ["Contato Iniciado","Conversando","Em Negociação","Visita Agendada","Amostra Enviada","Cliente Comprador"];
+  const { error: e3 } = await sb.from("etapas").insert(padrao.map((n,i) => ({
+    funil_id: f.id, nome: n, posicao: i, owner_id: user.id
+  })));
+  if(e3) throw e3;
+
+  return f;
+}
+
+async function trocarFunil(id){
+  if(funilAtual && funilAtual.id === id) return;
+  localStorage.setItem(CHAVE_FUNIL, id);
+  marcarSalvando();
+  try{
+    // grava o que estiver pendente antes de sair
+    clearTimeout(saveTimer);
+    await sincronizar();
+  }catch(e){}
+  location.reload();
+}
+
+async function renomearFunilAtual(nome){
+  const { error } = await sb.from("funis").update({ nome }).eq("id", funilAtual.id);
+  if(error) throw error;
+  funilAtual.nome = nome;
+  dados.boardName = nome;
+  if(fotoAnterior) fotoAnterior.boardName = nome;
+  const f = listaFunis.find(x => x.id === funilAtual.id);
+  if(f) f.nome = nome;
 }

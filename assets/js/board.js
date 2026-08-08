@@ -4,7 +4,6 @@
    ========================================================= */
 
 let arrastando = null;      // id do cartão
-let filtroStatus = "todos";
 
 /* ---------------- render principal ---------------- */
 function render(){
@@ -13,7 +12,7 @@ function render(){
   document.getElementById("boardName").value = dados.boardName || "Meu funil";
 
   const visiveis = cardsFiltrados();
-  const total = visiveis.reduce((s,c) => s + (Number(c.valor)||0), 0);
+  const total = visiveis.reduce((s,c) => s + valorCartao(c), 0);
   document.getElementById("totalValue").textContent = moeda(total);
   document.getElementById("totalCount").textContent =
     visiveis.length + (visiveis.length === 1 ? " negócio" : " negócios");
@@ -24,7 +23,7 @@ function render(){
   dados.columns.forEach((col, idx) => {
     const lista = visiveis.filter(c => c.columnId === col.id)
                           .sort((a,b) => (a.posicao || 0) - (b.posicao || 0));
-    const soma = lista.reduce((s,c) => s + (Number(c.valor)||0), 0);
+    const soma = lista.reduce((s,c) => s + valorCartao(c), 0);
 
     const el = document.createElement("div");
     el.className = "column";
@@ -80,6 +79,7 @@ function render(){
 
   ligarEventosBoard();
   atualizarContadoresAgenda();
+  if(typeof renderMenuFunis === "function") renderMenuFunis();
 }
 
 /* ---------------- arrastar: marcador de posição ---------------- */
@@ -153,10 +153,18 @@ function soltarCartao(colId, wrap){
   salvar(); render();
 }
 
+/** O valor que aparece no funil é o do pedido atual do cliente. */
+function valorCartao(card){
+  if(typeof pedidoAtual === "function"){
+    const p = pedidoAtual(card);
+    if(p) return totalPedido(p);
+  }
+  return Number(card.valor) || 0;
+}
+
 function cardsFiltrados(){
   const busca = (document.getElementById("searchInput").value || "").trim().toLowerCase();
   return dados.cards.filter(c => {
-    if(filtroStatus !== "todos" && c.status !== filtroStatus) return false;
     if(!busca) return true;
     const alvo = [c.nome, c.razaoSocial, c.cnpj, c.whatsapp, c.telefone, c.celular, c.email,
                   c.cidade, c.categoria, c.origem, c.responsavel,
@@ -198,7 +206,7 @@ function renderCard(card){
       ${card.status === "perdido" ? `<span style="color:var(--red)" title="Perdido">${icon("flag",14,2)}</span>` : ""}
     </div>
     ${contato ? `<div class="card-sub">${icon("phone",12,2)}${esc(contato)}</div>` : ""}
-    ${card.valor ? `<div class="card-value">${moeda(card.valor)}</div>` : ""}
+${(() => { const v = valorCartao(card); return v ? `<div class="card-value">${moeda(v)}</div>` : ""; })()}
     ${badge}
     ${tags.length ? `<div class="card-tags">${tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div>` : ""}
   `;
@@ -294,9 +302,6 @@ function abrirMenu(ev, cardId){
     ${item("note","Escrever nota","ag_nota")}
     <hr>
     ${card.whatsapp || card.celular ? item("whats","Abrir conversa no WhatsApp","wa") : ""}
-    ${card.status !== "ganho" ? item("trophy","Marcar como ganho","ganho") : ""}
-    ${card.status !== "perdido" ? item("flag","Marcar como perdido","perdido") : ""}
-    ${card.status !== "andamento" ? item("hour","Voltar para em andamento","andamento") : ""}
     ${item("copy","Duplicar negócio","duplicar")}
     ${item("trash","Excluir negócio","excluir","danger")}
   `;

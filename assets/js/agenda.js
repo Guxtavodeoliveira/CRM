@@ -4,6 +4,7 @@
    ========================================================= */
 
 let agendaDia = "hoje";
+let periodoDe = "", periodoAte = "";   // usados no modo "personalizado"
 
 /* ---------------- coleta ---------------- */
 function limitesDoDia(offset){
@@ -34,6 +35,14 @@ function agendaDoDia(offset){
   return atividadesPendentes().filter(i => i.t >= ini && i.t < fim);
 }
 
+/** Intervalo escolhido no calendário (datas no formato AAAA-MM-DD). */
+function agendaDoPeriodo(de, ate){
+  if(!de && !ate) return [];
+  const ini = de ? new Date(de + "T00:00:00").getTime() : -Infinity;
+  const fim = ate ? new Date(ate + "T23:59:59").getTime() : Infinity;
+  return atividadesPendentes().filter(i => i.t >= ini && i.t <= fim);
+}
+
 function agendaAtrasadas(){
   const [ini] = limitesDoDia(0);
   return atividadesPendentes().filter(i => i.t < ini);
@@ -51,9 +60,60 @@ function atualizarContadoresAgenda(){
 
 /* ---------------- painel ---------------- */
 function abrirAgenda(dia){
+  if(dia === "periodo"){ abrirEscolhaPeriodo(); return; }
   agendaDia = dia || "hoje";
   renderAgenda();
   document.getElementById("agendaOverlay").classList.add("show");
+}
+
+/* ---------------- escolher o período ---------------- */
+function isoDia(offset){
+  const d = new Date();
+  d.setDate(d.getDate() + (offset || 0));
+  const p = n => String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+
+function abrirEscolhaPeriodo(){
+  document.getElementById("per_de").value = periodoDe || isoDia(0);
+  document.getElementById("per_ate").value = periodoAte || isoDia(7);
+  document.getElementById("periodoOverlay").classList.add("show");
+}
+function fecharEscolhaPeriodo(){
+  document.getElementById("periodoOverlay").classList.remove("show");
+}
+
+function ligarEscolhaPeriodo(){
+  const ov = document.getElementById("periodoOverlay");
+  if(!ov) return;
+  document.getElementById("perFechar").onclick = fecharEscolhaPeriodo;
+  document.getElementById("perCancelar").onclick = fecharEscolhaPeriodo;
+  ov.addEventListener("click", e => { if(e.target.id === "periodoOverlay") fecharEscolhaPeriodo(); });
+
+  ov.querySelectorAll("[data-peratalho]").forEach(b => {
+    b.onclick = () => {
+      const n = Number(b.dataset.peratalho);
+      if(n >= 0){
+        document.getElementById("per_de").value = isoDia(0);
+        document.getElementById("per_ate").value = isoDia(n);
+      }else{
+        document.getElementById("per_de").value = isoDia(n);
+        document.getElementById("per_ate").value = isoDia(0);
+      }
+    };
+  });
+
+  document.getElementById("perVer").onclick = () => {
+    let de = document.getElementById("per_de").value;
+    let ate = document.getElementById("per_ate").value;
+    if(!de && !ate){ toast("Escolha pelo menos uma data.", "err"); return; }
+    if(de && ate && de > ate){ const x = de; de = ate; ate = x; }   // inverteu? corrige
+    periodoDe = de; periodoAte = ate;
+    agendaDia = "periodo";
+    fecharEscolhaPeriodo();
+    renderAgenda();
+    document.getElementById("agendaOverlay").classList.add("show");
+  };
 }
 function fecharAgenda(){
   document.getElementById("agendaOverlay").classList.remove("show");
@@ -61,24 +121,36 @@ function fecharAgenda(){
 
 function renderAgenda(){
   const box = document.getElementById("agendaContent");
+  const ehPeriodo = agendaDia === "periodo";
   const offset = agendaDia === "amanha" ? 1 : 0;
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
-  const dataTxt = d.toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"long" });
 
-  const itens = agendaDoDia(offset);
+  let dataTxt, itens, titulo;
+  if(ehPeriodo){
+    itens = agendaDoPeriodo(periodoDe, periodoAte);
+    titulo = "Atividades do período";
+    dataTxt = (periodoDe && periodoAte && periodoDe === periodoAte)
+      ? fmtData(periodoDe)
+      : `${periodoDe ? fmtData(periodoDe) : "início"} até ${periodoAte ? fmtData(periodoAte) : "sem fim"}`;
+  }else{
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    dataTxt = d.toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"long" });
+    itens = agendaDoDia(offset);
+    titulo = "Atividades de " + (agendaDia === "hoje" ? "hoje" : "amanhã");
+  }
   const atrasadas = agendaDia === "hoje" ? agendaAtrasadas() : [];
 
   box.innerHTML = `
     <div class="modal-head">
       <div class="avatar-sq">${icon("clock",20,2)}</div>
       <div style="flex:1;min-width:0">
-        <h2>Atividades de ${agendaDia === "hoje" ? "hoje" : "amanhã"}</h2>
+        <h2>${esc(titulo)}</h2>
         <div class="sub" style="text-transform:capitalize">${esc(dataTxt)}</div>
       </div>
       <div class="seg" style="margin-right:6px">
         <button data-dia="hoje" class="${agendaDia === "hoje" ? "on" : ""}">Hoje</button>
         <button data-dia="amanha" class="${agendaDia === "amanha" ? "on" : ""}">Amanhã</button>
+        <button data-dia="periodo" class="${ehPeriodo ? "on" : ""}">Período</button>
       </div>
       <button class="icon-btn lg" id="agFechar" aria-label="Fechar">${icon("x",17,2.2)}</button>
     </div>
@@ -90,10 +162,10 @@ function renderAgenda(){
         </div>` : ""}
 
       <div class="ag-grupo">
-        <div class="ag-titulo">${icon("clock",14,2.2)} ${agendaDia === "hoje" ? "Para hoje" : "Para amanhã"}
+        <div class="ag-titulo">${icon("clock",14,2.2)} ${ehPeriodo ? "No período escolhido" : (agendaDia === "hoje" ? "Para hoje" : "Para amanhã")}
           ${itens.length ? `<span class="ag-cont">${itens.length}</span>` : ""}</div>
         ${itens.length ? itens.map(i => itemAgenda(i, false)).join("")
-          : `<div class="empty-state">Nada agendado para ${agendaDia === "hoje" ? "hoje" : "amanhã"}.<br>
+          : `<div class="empty-state">Nada agendado para ${ehPeriodo ? "esse período" : (agendaDia === "hoje" ? "hoje" : "amanhã")}.<br>
              Bom sinal — ou hora de agendar o próximo contato.</div>`}
       </div>
     </div>
@@ -105,7 +177,11 @@ function renderAgenda(){
 
   // eventos
   box.querySelectorAll("[data-dia]").forEach(b => {
-    b.onclick = () => { agendaDia = b.dataset.dia; renderAgenda(); };
+    b.onclick = () => {
+      if(b.dataset.dia === "periodo"){ abrirEscolhaPeriodo(); return; }
+      agendaDia = b.dataset.dia;
+      renderAgenda();
+    };
   });
   box.querySelector("#agFechar").onclick = fecharAgenda;
   box.querySelector("#agFechar2").onclick = fecharAgenda;
@@ -152,7 +228,7 @@ function itemAgenda(i, atrasada){
 
   return `
   <div class="ag-item ${atrasada ? "atraso" : ""}" data-abrir="${card.id}">
-    <div class="ag-hora">${atrasada ? esc(fmtData(a.data)) : ""}<b>${hh}</b></div>
+    <div class="ag-hora">${(atrasada || agendaDia === "periodo") ? esc(fmtData(a.data)) : ""}<b>${hh}</b></div>
     <span class="act-ic" style="background:${t.color}14;color:${t.color}">${icon(t.icon,16,2)}</span>
     <div class="ag-corpo">
       <div class="ag-linha1">
