@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shaliach — CRM para representantes</title>
+<link rel="icon" href="img/faviconlogo.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="img/logo-icone.svg">
+<link rel="apple-touch-icon" href="img/icone-180.png">
+<meta name="theme-color" content="#4F46E5">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<!-- ==================== TELA DE CONEXÃO DO ARQUIVO ==================== -->
+<div id="connectScreen">
+  <div class="connect-card">
+    <img src="img/logo.svg" alt="Shaliach — CRM para representantes" class="connect-logo-img">
+    <h1 id="connectTitle">Conectar arquivo de dados</h1>
+    <p id="connectText">Escolha o arquivo <span class="file-name">.json</span> onde este CRM vai guardar tudo. Ele fica na pasta que você escolher, no seu computador — para migrar de máquina, basta levar o arquivo.</p>
+    <div class="connect-actions" id="connectActions">
+      <button class="btn btn-primary" id="createFileBtn">Criar novo arquivo de dados</button>
+      <button class="btn" id="openFileBtn">Abrir arquivo existente</button>
+    </div>
+    <div id="connectNote"></div>
+    <div class="connect-note">Cada alteração é gravada direto no arquivo. Recomendado: Chrome, Edge ou Opera.</div>
+  </div>
+</div>
+
+<!-- ==================== APLICAÇÃO ==================== -->
+<div id="app" class="hidden">
+
+  <header class="topbar">
+    <div class="brand">
+      <img src="img/logo.svg" alt="Shaliach" class="brand-logo">
+      <span class="brand-sep"></span>
+      <input id="boardName" value="Meu funil" aria-label="Nome do funil">
+    </div>
+
+    <div class="topbar-metric">
+      <span id="totalValue">R$ 0,00</span>
+      <span class="pill" id="totalCount">0 negócios</span>
+    </div>
+
+    <div class="topbar-spacer"></div>
+
+    <div class="file-chip" id="fileChip" style="display:none">
+      <i class="dot"></i>
+      <span id="fileChipName"></span>
+      <button id="switchFileBtn" title="Usar outro arquivo">trocar</button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/>
+      </svg>
+      <input id="searchInput" type="search" placeholder="Buscar no funil" aria-label="Buscar no funil">
+    </div>
+
+    <div class="seg" role="group" aria-label="Filtrar por situação">
+      <button data-filter="todos" class="on">Todos</button>
+      <button data-filter="andamento">Em andamento</button>
+      <button data-filter="ganho">Ganhos</button>
+      <button data-filter="perdido">Perdidos</button>
+    </div>
+
+    <div class="seg" id="agendaSeg" role="group" aria-label="Atividades agendadas">
+      <button data-agenda="hoje"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.5 2"/></svg>Hoje <span class="cnt hidden" id="cntHoje"></span></button>
+      <button data-agenda="amanha">Amanhã <span class="cnt hidden" id="cntAmanha"></span></button>
+    </div>
+
+    <div class="topbar-spacer"></div>
+
+    <div class="menu-wrap">
+      <button class="btn" id="relBtn" aria-haspopup="true" aria-expanded="false">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        Relatórios
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="menu" id="relMenu">
+        <div class="menu-head">Relatórios</div>
+        <button data-rel="vendas">
+          <span class="mic">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+          </span>
+          <span><b>Vendas e comissões</b><i>Por período, agrupado por cliente</i></span>
+        </button>
+      </div>
+    </div>
+
+    <button class="btn" id="importBtn">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+      Importar
+    </button>
+    <button class="btn" id="exportBtn">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 8l5-5 5 5"/><path d="M12 3v12"/></svg>
+      Exportar
+    </button>
+    <input type="file" id="importFile" accept=".json,application/json" class="hidden">
+
+    <div class="seg" style="align-items:center;gap:4px;padding-left:9px" title="Gerar as planilhas .xlsx no formato de importação do Agendor">
+      <span style="font-size:11px;font-weight:800;letter-spacing:.05em;color:var(--muted-2)">AGENDOR</span>
+      <button id="agNegocios">Negócios</button>
+      <button id="agCadastros">Cadastros</button>
+    </div>
+    <button class="btn btn-primary" id="newDealBtn">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Adicionar negócio
+    </button>
+  </div>
+
+  <div id="board"></div>
+</div>
+
+<!-- ==================== MENU DE CONTEXTO ==================== -->
+<div class="ctx" id="ctxMenu"></div>
+
+<!-- ==================== MODAL: EMPRESA (novo / editar) ==================== -->
+<div class="overlay" id="empresaOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="empTitle">
+    <div class="modal-head">
+      <div class="avatar-sq">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 21h18M5 21V6a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v15M14 21V10h4a1 1 0 0 1 1 1v10"/><path d="M8 9h3M8 13h3M8 17h3"/>
+        </svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <h2 id="empTitle">Adicionar nova empresa</h2>
+        <div class="sub" id="empSub">Cadastre o cliente e o negócio dele no funil</div>
+      </div>
+      <button class="icon-btn lg" id="empClose" aria-label="Fechar">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- Dados básicos -->
+      <section class="sec">
+        <h3>Dados básicos</h3>
+        <div class="grid" style="margin-top:14px">
+          <div class="field full" id="f_nome_wrap">
+            <label for="f_nome">Nome <span class="req">Obrigatório</span></label>
+            <input class="inp" id="f_nome" placeholder="Nome da empresa ou do cliente" autocomplete="off">
+            <span class="field-err">Informe o nome do cliente.</span>
+          </div>
+          <div class="field">
+            <label for="f_cnpj">CNPJ</label>
+            <input class="inp" id="f_cnpj" placeholder="00.000.000/0000-00" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_razao">Razão social</label>
+            <input class="inp" id="f_razao" placeholder="Digite a razão social" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_categoria">Categoria</label>
+            <div class="select-wrap">
+              <input class="inp" id="f_categoria" list="dl_categoria" placeholder="Selecione ou digite" autocomplete="off">
+              <datalist id="dl_categoria"></datalist>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f_origem">Origem</label>
+            <div class="select-wrap">
+              <input class="inp" id="f_origem" list="dl_origem" placeholder="Selecione ou digite" autocomplete="off">
+              <datalist id="dl_origem"></datalist>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f_responsavel">Responsável</label>
+            <div class="select-wrap">
+              <input class="inp" id="f_responsavel" list="dl_responsavel" placeholder="Quem cuida desse cliente" autocomplete="off">
+              <datalist id="dl_responsavel"></datalist>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f_setor">Setor</label>
+            <div class="select-wrap">
+              <input class="inp" id="f_setor" list="dl_setor" placeholder="Selecione ou digite" autocomplete="off">
+              <datalist id="dl_setor"></datalist>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field full">
+            <label for="f_descricao">Descrição</label>
+            <textarea class="inp" id="f_descricao" placeholder="Escreva detalhes importantes sobre esse cliente"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Negócio no funil -->
+      <section class="sec">
+        <h3>Negócio no funil</h3>
+        <p class="sec-desc">Em qual etapa esse cliente entra e quanto vale a oportunidade.</p>
+        <div class="grid-3">
+          <div class="field">
+            <label for="f_etapa">Etapa</label>
+            <div class="select-wrap">
+              <select class="inp" id="f_etapa"></select>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f_valor">Valor do negócio</label>
+            <input class="inp" id="f_valor" placeholder="R$ 0,00" inputmode="decimal" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_dataInicio">Data de início</label>
+            <input class="inp" id="f_dataInicio" type="date">
+          </div>
+        </div>
+      </section>
+
+      <!-- Privacidade -->
+      <section class="sec">
+        <h3>Privacidade</h3>
+        <p class="sec-desc">Quem pode ver o histórico e editar essa empresa?</p>
+        <label class="radio-row">
+          <input type="radio" name="priv" value="todos" id="f_priv_todos" checked>
+          <div>
+            <div class="t">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1"/><circle cx="9.5" cy="7" r="3.5"/><path d="M22 20v-1a4 4 0 0 0-3-3.8"/></svg>
+              Todos
+            </div>
+            <div class="d">Todos os usuários da conta terão acesso.</div>
+          </div>
+        </label>
+        <label class="radio-row">
+          <input type="radio" name="priv" value="restrito" id="f_priv_restrito">
+          <div>
+            <div class="t">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+              Acesso restrito
+            </div>
+            <div class="d">O responsável, seus líderes e os administradores da conta sempre terão acesso.<br>Você também pode conceder acesso a outros usuários.</div>
+          </div>
+        </label>
+        <div class="field" style="margin-top:14px">
+          <label for="f_acessos">Acessos adicionais</label>
+          <input class="inp" id="f_acessos" placeholder="Selecionar..." autocomplete="off">
+        </div>
+      </section>
+
+      <!-- Contato -->
+      <section class="sec">
+        <h3>Informações para contato</h3>
+        <p class="sec-desc">Adicione informações que facilitem o contato com o cliente.</p>
+        <div class="grid">
+          <div class="field">
+            <label for="f_email">E-mail</label>
+            <input class="inp" id="f_email" type="email" placeholder="exemplo@email.com" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_whatsapp">WhatsApp</label>
+            <input class="inp" id="f_whatsapp" placeholder="+55 00 00000-0000" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_telefone">Telefone</label>
+            <input class="inp" id="f_telefone" placeholder="(00) 0000-0000" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_celular">Celular</label>
+            <input class="inp" id="f_celular" placeholder="(00) 00000-0000" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_fax">Fax</label>
+            <input class="inp" id="f_fax" placeholder="(00) 0000-0000" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_ramal">Ramal</label>
+            <input class="inp" id="f_ramal" placeholder="00" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_website">Website</label>
+            <input class="inp" id="f_website" placeholder="www.exemplo.com.br" autocomplete="off">
+          </div>
+        </div>
+      </section>
+
+      <!-- Endereço -->
+      <section class="sec">
+        <h3>Dados de endereço</h3>
+        <p class="sec-desc">Adicione a localização do seu cliente.</p>
+        <div class="grid-3">
+          <div class="field">
+            <label for="f_cep">CEP <span class="req" id="cepStatus"></span></label>
+            <input class="inp" id="f_cep" placeholder="00000-000" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_pais">País</label>
+            <input class="inp" id="f_pais" placeholder="Brasil" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_estado">Estado</label>
+            <div class="select-wrap">
+              <select class="inp" id="f_estado"></select>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field" style="grid-column:span 2">
+            <label for="f_cidade">Cidade</label>
+            <input class="inp" id="f_cidade" placeholder="Primeiro, selecione o estado" disabled autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_bairro">Bairro</label>
+            <input class="inp" id="f_bairro" placeholder="Bairro X" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_rua">Rua</label>
+            <input class="inp" id="f_rua" placeholder="Rua Y" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_numero">Número</label>
+            <input class="inp" id="f_numero" placeholder="77" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f_complemento">Complemento</label>
+            <input class="inp" id="f_complemento" placeholder="Sala 153, Bloco B" autocomplete="off">
+          </div>
+        </div>
+      </section>
+
+      <!-- Produtos -->
+      <section class="sec">
+        <h3>Produtos e serviços</h3>
+        <p class="sec-desc">Quais esse cliente tem potencial de comprar?</p>
+        <div id="f_produtosChips" class="chips-empty">Nenhum produto adicionado.</div>
+        <div class="row-gap">
+          <div class="select-wrap" style="flex:1;min-width:200px">
+            <input class="inp" id="f_produtoInput" list="dl_produtos" placeholder="Buscar ou digitar um produto..." autocomplete="off">
+            <datalist id="dl_produtos"></datalist>
+          </div>
+          <button class="btn btn-soft" id="f_addProduto" type="button">+ Adicionar</button>
+        </div>
+      </section>
+
+      <!-- Pessoas -->
+      <section class="sec">
+        <h3>Pessoas da empresa</h3>
+        <p class="sec-desc">Adicione seus contatos diretos de dentro da empresa.</p>
+        <div id="f_pessoas"></div>
+        <button class="btn btn-ghost" id="f_addPessoa" type="button" style="padding-left:0">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Adicionar pessoas
+        </button>
+      </section>
+
+      <!-- Redes sociais -->
+      <section class="sec">
+        <h3>Redes sociais</h3>
+        <div class="grid" style="margin-top:14px">
+          <div class="field"><label for="f_facebook">Facebook</label><input class="inp" id="f_facebook" placeholder="facebook.com/empresa" autocomplete="off"></div>
+          <div class="field"><label for="f_twitter">X (twitter)</label><input class="inp" id="f_twitter" placeholder="x.com/empresa" autocomplete="off"></div>
+          <div class="field"><label for="f_linkedin">LinkedIn</label><input class="inp" id="f_linkedin" placeholder="linkedin.com/in/empresa" autocomplete="off"></div>
+          <div class="field"><label for="f_skype">Skype</label><input class="inp" id="f_skype" placeholder="usuario.skype" autocomplete="off"></div>
+          <div class="field"><label for="f_instagram">Instagram</label><input class="inp" id="f_instagram" placeholder="instagram.com/empresa" autocomplete="off"></div>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn btn-danger left hidden" id="empDelete" type="button">Excluir cliente</button>
+      <button class="btn" id="empCancel" type="button">Cancelar</button>
+      <button class="btn btn-primary" id="empSave" type="button">Salvar e continuar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: NEGÓCIO ==================== -->
+<div class="overlay" id="dealOverlay">
+  <div class="modal wide" role="dialog" aria-modal="true">
+    <div class="deal" id="dealContent"></div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: AGENDA (HOJE / AMANHÃ) ==================== -->
+<div class="overlay" id="agendaOverlay">
+  <div class="modal" style="max-width:760px" role="dialog" aria-modal="true">
+    <div id="agendaContent" style="display:flex;flex-direction:column;max-height:calc(100vh - 52px)"></div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: AGENDAR ATIVIDADE ==================== -->
+<div class="overlay" id="schedOverlay">
+  <div class="modal narrow" role="dialog" aria-modal="true" aria-labelledby="schedTitle">
+    <div class="modal-head">
+      <div class="avatar-sq" id="schedIcon"></div>
+      <div style="flex:1">
+        <h2 id="schedTitle">Agendar atividade</h2>
+        <div class="sub" id="schedSub"></div>
+      </div>
+      <button class="icon-btn lg" id="schedClose" aria-label="Fechar">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="grid" style="padding-top:16px">
+        <div class="field">
+          <label for="s_tipo">Tipo</label>
+          <div class="select-wrap">
+            <select class="inp" id="s_tipo"></select>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="field">
+          <label for="s_data">Prazo</label>
+          <input class="inp" id="s_data" type="datetime-local">
+        </div>
+        <div class="field full">
+          <label for="s_nota">Nota</label>
+          <textarea class="inp" id="s_nota" placeholder="O que foi feito e qual o próximo passo?"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="schedCancel" type="button">Cancelar</button>
+      <button class="btn btn-primary" id="schedSave" type="button">Agendar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: RELATÓRIO ==================== -->
+<div class="overlay" id="relOverlay">
+  <div class="modal" style="max-width:960px" role="dialog" aria-modal="true">
+    <div id="relContent" style="display:flex;flex-direction:column;max-height:calc(100vh - 52px)"></div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: PEDIDO ==================== -->
+<div class="overlay" id="pedidoOverlay">
+  <div class="modal" style="max-width:880px" role="dialog" aria-modal="true" aria-labelledby="pedTitulo">
+    <div class="modal-head">
+      <div class="avatar-sq">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/>
+          <path d="M2 3h3l2.4 12.1a1.6 1.6 0 0 0 1.6 1.3h8.5a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/>
+        </svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <h2 id="pedTitulo">Novo pedido</h2>
+        <div class="sub" id="pedSub"></div>
+      </div>
+      <button class="icon-btn lg" id="pedFechar" aria-label="Fechar">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="grid-3" style="padding-top:16px">
+        <div class="field">
+          <label for="ped_data">Data do pedido</label>
+          <input class="inp" id="ped_data" type="date">
+        </div>
+        <div class="field">
+          <label for="ped_comis">Comissão (%)</label>
+          <input class="inp" id="ped_comis" placeholder="Ex.: 5" inputmode="decimal" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="ped_pgto">Forma de pagamento</label>
+          <input class="inp" id="ped_pgto" placeholder="Ex.: boleto 30/45/60, Pix à vista..." autocomplete="off">
+        </div>
+      </div>
+
+      <div class="sec" style="border-bottom:none;padding-bottom:0">
+        <h3>Itens do pedido</h3>
+        <p class="sec-desc">Produto fechado, quantidade e preço. O subtotal e o total são calculados sozinhos.</p>
+
+        <datalist id="dl_pedprod"></datalist>
+        <div id="pedItens"></div>
+
+        <button class="btn btn-soft" id="pedAddItem" type="button" style="margin-top:4px">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Adicionar item
+        </button>
+
+        <div class="ped-total-box">
+          <span id="pedPecas" class="muted"></span>
+          <div class="ped-total-linhas">
+            <div class="ped-total-linha">
+              <span class="ped-total-lbl">Total do pedido</span>
+              <span id="pedTotal" class="ped-total-val">R$ 0,00</span>
+            </div>
+            <div class="ped-total-linha comis">
+              <span class="ped-total-lbl" id="pedComisLbl">Total comissão</span>
+              <span id="pedComisVal" class="ped-total-val comis">R$ 0,00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn" id="pedCancelar" type="button">Cancelar</button>
+      <button class="btn btn-primary" id="pedSalvar" type="button">Salvar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: CONFIRMAÇÃO ==================== -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal narrow" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="avatar-sq" style="background:var(--red-50);color:var(--red)">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+      </div>
+      <div><h2 id="confirmTitle">Confirmar</h2></div>
+    </div>
+    <div class="modal-body"><p id="confirmText" style="font-size:13.5px;line-height:1.65;color:var(--ink-2);padding-top:6px"></p></div>
+    <div class="modal-foot">
+      <button class="btn" id="confirmNo" type="button">Cancelar</button>
+      <button class="btn btn-primary" id="confirmYes" type="button">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<!-- ==================== PROMPT SIMPLES (nome de etapa etc) ==================== -->
+<div class="overlay" id="promptOverlay">
+  <div class="modal narrow" role="dialog" aria-modal="true">
+    <div class="modal-head"><div style="flex:1"><h2 id="promptTitle">Novo</h2></div></div>
+    <div class="modal-body">
+      <div class="field" style="padding-top:12px">
+        <label id="promptLabel" for="promptInput">Nome</label>
+        <input class="inp" id="promptInput" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="promptNo" type="button">Cancelar</button>
+      <button class="btn btn-primary" id="promptYes" type="button">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/vendor/xlsx.mini.min.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/board.js"></script>
+<script src="assets/js/empresa.js"></script>
+<script src="assets/js/negocio.js"></script>
+<script src="assets/js/pedidos.js"></script>
+<script src="assets/js/relatorios.js"></script>
+<script src="assets/js/agenda.js"></script>
+<script src="assets/js/exportar-agendor.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

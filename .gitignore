@@ -1,0 +1,19 @@
+# Dados do CRM — NUNCA subir (tem dado de cliente)
+crm-dados.json
+crm-backup*.json
+*-backup-*.json
+dados/
+backup/
+
+# Dependências do Node (a pasta banco cria isso ao rodar npm install)
+node_modules/
+package-lock.json
+
+# Planilhas geradas
+*.xlsx
+
+# Lixo do sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+*.tmp
