@@ -112,6 +112,13 @@ Registra o que o cliente efetivamente fechou.
   **Total do pedido** e **Total comissão** —, tanto na hora de lançar quanto no card do
   pedido. No topo da aba fica o acumulado do cliente: quantos pedidos, total fechado e
   comissão gerada. Aceita vírgula (3,5) e o histórico pode ser ordenado por comissão.
+- **PDF do pedido**: o botão **PDF** no rodapé do pedido gera a *ficha do pedido*
+  para você imprimir ou salvar em PDF e mandar para a empresa faturar. Ela traz o
+  cabeçalho com número e data, os dados cadastrais do cliente (dados básicos,
+  contato e endereço de faturamento), a tabela de itens com totais, a forma de
+  pagamento, os comentários do pedido e espaço para assinatura.
+  A sua **comissão fica de fora por padrão** — tem uma caixa para incluir, caso a
+  ficha seja de uso interno.
 - **Comentários em cada pedido**, igual às atividades: prazo de entrega, combinação de
   frete, atraso da transportadora, o que for.
 - Você pode **editar** um pedido depois (mantém o número e os comentários) ou excluí-lo.

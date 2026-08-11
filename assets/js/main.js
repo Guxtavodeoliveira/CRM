@@ -44,6 +44,7 @@ document.addEventListener("keydown", e => {
     if(document.getElementById("confirmOverlay").classList.contains("show")) return;
     if(document.getElementById("schedOverlay").classList.contains("show")) return fecharAgendar();
     if(document.getElementById("pedidoOverlay").classList.contains("show")) return fecharPedidoModal();
+    if(document.getElementById("fichaOverlay").classList.contains("show")) return fecharFicha();
     if(document.getElementById("relOverlay").classList.contains("show")) return fecharRelatorio();
     if(document.getElementById("agendaOverlay").classList.contains("show")) return fecharAgenda();
     if(document.getElementById("empresaOverlay").classList.contains("show")) return fecharEmpresa();
@@ -71,6 +72,7 @@ window.addEventListener("beforeunload", () => { if(saveTimer) writeToFile(); });
 ligarUsuario();
 ligarFunis();
 ligarEscolhaPeriodo();
+ligarFicha();
 ligarRelatorios();
 ligarPedidoModal();
 ligarEmpresa();

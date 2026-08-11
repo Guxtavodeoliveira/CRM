@@ -255,17 +255,25 @@ function ligarRelVendas(){
   box.querySelector("#relAte").onchange = e => { relAte = e.target.value; renderRelVendas(); };
   box.querySelector("#relAgrup").onchange = e => { relAgrupado = e.target.checked; renderRelVendas(); };
 
-  box.querySelector("#relPrint").onclick = () => {
-    document.body.classList.add("imprimindo");
-    const limpar = () => {
-      document.body.classList.remove("imprimindo");
-      window.removeEventListener("afterprint", limpar);
-    };
-    window.addEventListener("afterprint", limpar);
-    setTimeout(() => { window.print(); setTimeout(limpar, 1200); }, 60);
-  };
+  box.querySelector("#relPrint").onclick = () => imprimirFolha("relOverlay");
 
   box.querySelector("#relXlsx").onclick = exportarRelXlsx;
+}
+
+/* ---------------- impressão / PDF ---------------- */
+/** Isola a folha indicada e abre a impressão do navegador. */
+function imprimirFolha(idOverlay){
+  const ov = document.getElementById(idOverlay);
+  if(!ov) return;
+  ov.classList.add("para-imprimir");
+  document.body.classList.add("imprimindo");
+  const limpar = () => {
+    document.body.classList.remove("imprimindo");
+    ov.classList.remove("para-imprimir");
+    window.removeEventListener("afterprint", limpar);
+  };
+  window.addEventListener("afterprint", limpar);
+  setTimeout(() => { window.print(); setTimeout(limpar, 1200); }, 60);
 }
 
 /* ---------------- Excel ---------------- */

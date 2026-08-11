@@ -1024,18 +1024,19 @@ select.inp{appearance:none;}
 @media print{
   @page{ size:A4; margin:14mm 12mm; }
   body.imprimindo > *{display:none !important;}
-  body.imprimindo #relOverlay{
+  body.imprimindo .para-imprimir{
     display:block !important;position:static;background:none;
     padding:0;overflow:visible;backdrop-filter:none;
   }
-  body.imprimindo #relOverlay .modal{
+  body.imprimindo .para-imprimir .modal{
     max-width:none;width:100%;box-shadow:none;border-radius:0;
     max-height:none;margin:0;animation:none;
   }
-  body.imprimindo #relContent{max-height:none;display:block;}
+  body.imprimindo .para-imprimir > .modal > div{max-height:none;display:block;}
   body.imprimindo .modal-head,
   body.imprimindo .modal-foot,
-  body.imprimindo .rel-filtros{display:none !important;}
+  body.imprimindo .rel-filtros,
+  body.imprimindo .nao-imprime{display:none !important;}
   body.imprimindo .modal-body{padding:0;overflow:visible;max-height:none;}
   .rel-grupo, .rel-tab tr{page-break-inside:avoid;}
   .rel-totais{page-break-inside:avoid;}
@@ -1154,3 +1155,78 @@ select.inp{appearance:none;}
   display:block;font-size:12px;color:#0F8A5F;margin-top:4px;font-weight:600;
 }
 .pd-comis b{font-weight:800;}
+
+/* =========================================================
+   Ficha do pedido (impressa / PDF)
+   ========================================================= */
+#fichaOverlay{z-index:132;}
+.ped-foot .cm.destaque{color:var(--brand);}
+.ped-foot .cm.destaque:hover{background:var(--brand-50);}
+
+.fi-secao{margin-top:20px;}
+.fi-secao h4{
+  font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--brand-700);margin:0 0 9px;padding-bottom:6px;
+  border-bottom:1px solid var(--line);
+}
+.fi-grade{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px 26px;
+}
+@media (max-width:620px){ .fi-grade{grid-template-columns:1fr;} }
+.fi-linha{
+  display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+  font-size:12.5px;padding:3px 0;border-bottom:1px dotted var(--line-2);
+}
+.fi-linha span{color:var(--muted);}
+.fi-linha b{color:var(--ink);font-weight:600;text-align:right;overflow-wrap:anywhere;}
+.fi-endereco{
+  font-size:13px;line-height:1.65;color:var(--ink-2);margin:0;
+}
+.fi-endereco.vazio{color:var(--muted-2);}
+
+.fi-totais{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;
+}
+.fi-totais > div{
+  flex:1;min-width:130px;border:1px solid var(--line);
+  border-radius:var(--r);padding:9px 12px;
+}
+.fi-totais span{
+  display:block;font-size:10px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--muted);margin-bottom:3px;
+}
+.fi-totais b{font-size:16px;font-weight:800;letter-spacing:-.01em;color:var(--ink);}
+.fi-totais .destaque{background:var(--brand-50);border-color:var(--brand-100);}
+.fi-totais .destaque b{color:var(--brand-700);font-size:19px;}
+.fi-comis{
+  margin-top:11px;padding:8px 12px;border-radius:var(--r);
+  background:var(--green-50);border:1px solid #BFE8D7;
+  font-size:12.5px;color:#0F7A54;
+}
+
+.fi-coments{list-style:none;margin:0;padding:0;}
+.fi-coments li{
+  border-left:2px solid var(--brand-100);padding:2px 0 2px 11px;margin-bottom:11px;
+}
+.fi-coment-topo{font-size:11px;color:var(--muted);margin-bottom:2px;}
+.fi-coment-txt{
+  font-size:12.5px;line-height:1.6;color:var(--ink-2);
+  white-space:pre-wrap;word-break:break-word;
+}
+
+.fi-assinaturas{
+  display:flex;gap:40px;margin-top:38px;
+}
+.fi-assinaturas > div{
+  flex:1;text-align:center;font-size:11px;color:var(--muted);
+}
+.fi-assinaturas span{
+  display:block;border-top:1px solid var(--ink-2);margin-bottom:6px;height:1px;
+}
+
+@media print{
+  .fi-secao{page-break-inside:avoid;}
+  .fi-assinaturas{page-break-inside:avoid;}
+  .fi-totais .destaque{background:#EFEDFD !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .fi-comis{background:#E6F7F0 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}

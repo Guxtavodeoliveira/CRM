@@ -158,6 +158,9 @@ function pedidoCard(p, ehAtual){
         <button class="cm ${pedidoComentAbertos.has(p.id) ? "on" : ""}" data-pedcoment="${p.id}">
           ${icon("chat",13,2)} Comentários${qtdCom ? ` (${qtdCom})` : ""}
         </button>
+        <button class="cm destaque" data-pedpdf="${p.id}" title="Gerar a ficha do pedido em PDF">
+          ${icon("doc",13,2)} PDF
+        </button>
         <button class="cm" data-pededit="${p.id}">${icon("edit",13,2)} Editar</button>
         <button class="rm" data-peddel="${p.id}">Excluir</button>
       </div>
@@ -214,6 +217,10 @@ function ligarPedidos(card){
       else pedidosAbertos.add(id);
       renderNegocio();
     };
+  });
+
+  box.querySelectorAll("[data-pedpdf]").forEach(b => {
+    b.onclick = () => abrirFichaPedido(card, b.dataset.pedpdf);
   });
 
   box.querySelectorAll("[data-pededit]").forEach(b => {
@@ -486,4 +493,175 @@ function ligarPedidoModal(){
   document.getElementById("pedidoOverlay").addEventListener("click", e => {
     if(e.target.id === "pedidoOverlay") fecharPedidoModal();
   });
+}
+
+
+/* =========================================================
+   Ficha do pedido — para imprimir ou salvar em PDF e mandar
+   para a empresa faturar.
+   ========================================================= */
+let fichaComissao = false;    // por padrão a comissão NÃO vai na ficha
+
+function abrirFichaPedido(card, pedidoId){
+  const p = (card.pedidos || []).find(x => x.id === pedidoId);
+  if(!p) return;
+  renderFicha(card, p);
+  document.getElementById("fichaOverlay").classList.add("show");
+}
+function fecharFicha(){
+  document.getElementById("fichaOverlay").classList.remove("show");
+}
+
+function linhaFicha(rot, val){
+  if(!val) return "";
+  return `<div class="fi-linha"><span>${esc(rot)}</span><b>${esc(val)}</b></div>`;
+}
+
+function renderFicha(card, p){
+  const total = totalPedido(p);
+  const comis = comissaoPedido(p);
+  const pecas = (p.itens||[]).reduce((s,it) => s + (Number(it.quantidade)||0), 0);
+
+  const endereco = [
+    card.rua && (card.rua + (card.numero_end ? ", " + card.numero_end : "")),
+    card.complemento, card.bairro,
+    [card.cidade, card.estado].filter(Boolean).join(" - "),
+    card.cep && ("CEP " + card.cep),
+    card.pais
+  ].filter(Boolean).join(" · ");
+
+  document.getElementById("fichaContent").innerHTML = `
+    <div class="modal-head">
+      <div class="avatar-sq">${icon("doc",20,1.9)}</div>
+      <div style="flex:1;min-width:0">
+        <h2>Ficha do pedido #${p.numero}</h2>
+        <div class="sub">${esc(card.nome)} · ${esc(fmtData(p.data) || "sem data")} · ${moeda(total)}</div>
+      </div>
+      <button class="icon-btn lg" id="fichaFechar" aria-label="Fechar">${icon("x",17,2.2)}</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="folha" id="fichaFolha">
+
+        <div class="folha-topo">
+          <img src="img/logo.svg" alt="Shaliach" class="folha-logo">
+          <div class="folha-info">
+            <h3>Pedido nº ${p.numero}</h3>
+            <div>Data do pedido: <b>${esc(fmtData(p.data) || "—")}</b></div>
+            <div>Representante: <b>${esc(card.responsavel || dados.usuario || "—")}</b>${dados.boardName ? " · " + esc(dados.boardName) : ""}</div>
+          </div>
+        </div>
+
+        <div class="fi-secao">
+          <h4>Dados do cliente</h4>
+          <div class="fi-grade">
+            ${linhaFicha("Nome", card.nome)}
+            ${linhaFicha("Razão social", card.razaoSocial)}
+            ${linhaFicha("CNPJ", card.cnpj)}
+            ${linhaFicha("Categoria", card.categoria)}
+            ${linhaFicha("Setor", card.setor)}
+            ${linhaFicha("Origem", card.origem)}
+          </div>
+        </div>
+
+        <div class="fi-secao">
+          <h4>Contato</h4>
+          <div class="fi-grade">
+            ${linhaFicha("E-mail", card.email)}
+            ${linhaFicha("WhatsApp", card.whatsapp)}
+            ${linhaFicha("Telefone", card.telefone)}
+            ${linhaFicha("Celular", card.celular)}
+            ${linhaFicha("Fax", card.fax)}
+            ${linhaFicha("Ramal", card.ramal)}
+            ${linhaFicha("Website", card.website)}
+          </div>
+        </div>
+
+        <div class="fi-secao">
+          <h4>Endereço de faturamento</h4>
+          ${endereco
+            ? `<p class="fi-endereco">${esc(endereco)}</p>`
+            : `<p class="fi-endereco vazio">Endereço não cadastrado.</p>`}
+        </div>
+
+        <div class="fi-secao">
+          <h4>Itens do pedido</h4>
+          <table class="rel-tab">
+            <thead>
+              <tr>
+                <th style="width:34px">#</th><th>Produto</th>
+                <th class="num">Qtd</th><th class="num">Preço unit.</th><th class="num">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${(p.itens||[]).map((it,i) => `
+                <tr>
+                  <td>${i+1}</td>
+                  <td>${esc(it.produto || "—")}</td>
+                  <td class="num">${(Number(it.quantidade)||0).toLocaleString("pt-BR")}</td>
+                  <td class="num">${moeda(it.preco)}</td>
+                  <td class="num" style="font-weight:700">${moeda(subtotalItem(it))}</td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+
+          <div class="fi-totais">
+            <div><span>Itens</span><b>${(p.itens||[]).length}</b></div>
+            <div><span>Quantidade total</span><b>${pecas.toLocaleString("pt-BR")} un.</b></div>
+            <div class="destaque"><span>Total do pedido</span><b>${moeda(total)}</b></div>
+          </div>
+
+          ${fichaComissao && p.comissaoPct ? `
+            <div class="fi-comis">Comissão do representante: ${esc(fmtPct(p.comissaoPct))} · <b>${moeda(comis)}</b></div>` : ""}
+        </div>
+
+        <div class="fi-secao">
+          <h4>Forma de pagamento</h4>
+          <p class="fi-endereco">${p.formaPagamento ? esc(p.formaPagamento) : "Não informada."}</p>
+        </div>
+
+        <div class="fi-secao">
+          <h4>Comentários</h4>
+          ${(p.comentarios||[]).length
+            ? `<ul class="fi-coments">${p.comentarios.map(k => `
+                <li>
+                  <div class="fi-coment-topo">${esc(k.autor || "")} · ${esc(fmtLongo(k.criadoEm))}</div>
+                  <div class="fi-coment-txt">${esc(k.texto)}</div>
+                </li>`).join("")}</ul>`
+            : `<p class="fi-endereco vazio">Nenhum comentário neste pedido.</p>`}
+        </div>
+
+        <div class="fi-assinaturas">
+          <div><span></span>Conferido por</div>
+          <div><span></span>Aprovado por</div>
+        </div>
+
+        <div class="rel-rodape">
+          Emitido em ${esc(fmtLongo(new Date().toISOString()))} · Pedido #${p.numero} · ${esc(card.nome)}
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <label class="check left" title="Marque se a ficha for de uso interno">
+        <input type="checkbox" id="fichaComis" ${fichaComissao ? "checked" : ""}> Incluir minha comissão
+      </label>
+      <button class="btn" id="fichaFechar2">Fechar</button>
+      <button class="btn btn-primary" id="fichaPrint">${icon("doc",14,2)} Imprimir / Salvar PDF</button>
+    </div>
+  `;
+
+  document.getElementById("fichaFechar").onclick = fecharFicha;
+  document.getElementById("fichaFechar2").onclick = fecharFicha;
+  document.getElementById("fichaPrint").onclick = () => imprimirFolha("fichaOverlay");
+  document.getElementById("fichaComis").onchange = e => {
+    fichaComissao = e.target.checked;
+    renderFicha(card, p);
+  };
+}
+
+function ligarFicha(){
+  const ov = document.getElementById("fichaOverlay");
+  if(!ov) return;
+  ov.addEventListener("click", e => { if(e.target.id === "fichaOverlay") fecharFicha(); });
 }
