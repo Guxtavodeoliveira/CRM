@@ -34,16 +34,16 @@ Por padrão as mensagens vão em inglês.
 
 1. **Authentication** → **Emails** → aba **Templates**.
 2. Em **Confirm signup**, troque o assunto para
-   `Confirme seu cadastro no Shaliach` e o texto para algo como:
+   `Confirme seu cadastro` e o texto para algo como:
 
    ```html
-   <h2>Bem-vindo ao Shaliach</h2>
+   <h2>Bem-vindo</h2>
    <p>Clique no botão abaixo para confirmar seu e-mail e ativar sua conta.</p>
    <p><a href="{{ .ConfirmationURL }}">Confirmar meu e-mail</a></p>
    <p>Se você não criou essa conta, pode ignorar esta mensagem.</p>
    ```
 
-3. Em **Reset password**, assunto `Recuperar sua senha do Shaliach`:
+3. Em **Reset password**, assunto `Recuperar sua senha`:
 
    ```html
    <h2>Criar uma nova senha</h2>

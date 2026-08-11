@@ -1,4 +1,4 @@
-# CRM Funil
+# CRM — Gustavo de Oliveira · Consultoria e Representação
 
 Kanban de clientes que grava tudo em **um arquivo `.json` na pasta do seu computador**.
 Nada vai para a internet: o arquivo é seu, e é ele que você leva ao trocar de máquina.

@@ -11,7 +11,9 @@
 
 let funilAtual = null;         // { id, nome, representada_id }
 let listaFunis = [];           // todos os funis do usuário
-const CHAVE_FUNIL = "shaliachFunilAtual";
+/* mantém a chave antiga para não perder a escolha de quem já usava */
+const CHAVE_FUNIL = "crmFunilAtual";
+const CHAVE_FUNIL_ANTIGA = "shaliachFunilAtual";
 let fotoAnterior = null;       // cópia do estado, para comparar
 let sincronizando = false;
 let novaSincPendente = false;
@@ -61,7 +63,7 @@ async function carregarDoBanco(){
   }
   listaFunis = funis;
   // volta para o último funil que o usuário estava usando
-  const salvo = localStorage.getItem(CHAVE_FUNIL);
+  const salvo = localStorage.getItem(CHAVE_FUNIL) || localStorage.getItem(CHAVE_FUNIL_ANTIGA);
   funilAtual = funis.find(f => f.id === salvo) || funis[0];
   localStorage.setItem(CHAVE_FUNIL, funilAtual.id);
 

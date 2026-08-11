@@ -544,7 +544,7 @@ function renderFicha(card, p){
       <div class="folha" id="fichaFolha">
 
         <div class="folha-topo">
-          <img src="img/logo.svg" alt="Shaliach" class="folha-logo">
+          <img src="img/logo.svg" alt="Gustavo de Oliveira" class="folha-logo">
           <div class="folha-info">
             <h3>Pedido nº ${p.numero}</h3>
             <div>Data do pedido: <b>${esc(fmtData(p.data) || "—")}</b></div>

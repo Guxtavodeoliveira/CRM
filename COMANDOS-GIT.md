@@ -45,7 +45,7 @@ git remote add origin https://github.com/Guxtavodeoliveira/CRM.git
 
 ```cmd
 git add .
-git commit -m "Shaliach CRM completo"
+git commit -m "CRM completo"
 ```
 
 ```cmd
@@ -124,5 +124,5 @@ Ele impede que estes arquivos subam para o GitHub:
 - Planilhas `.xlsx` que você exportar dentro da pasta.
 
 Guarde o `crm-dados.json` **fora** da pasta do projeto. Uma pasta tipo
-`Documentos\Shaliach-Dados` já resolve, e ainda evita apagá-lo sem querer
+`Documentos\CRM-Dados` já resolve, e ainda evita apagá-lo sem querer
 quando descompactar uma versão nova por cima.

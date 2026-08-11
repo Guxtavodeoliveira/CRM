@@ -1,4 +1,4 @@
-# Publicar o Shaliach no ar (GitHub + Cloudflare Pages)
+# Publicar o sistema no ar (GitHub + Cloudflare Pages)
 
 Tempo total: uns 15 minutos. Tudo gratuito. Você não precisa saber programar.
 
@@ -74,7 +74,7 @@ republica sozinho em cerca de um minuto.
 
 ## Domínio próprio (opcional)
 
-Se você comprar algo como `shaliach.com.br`, dá para apontar para essa página em
+Se você comprar algo como `gustavodeoliveira.com.br`, dá para apontar para essa página em
 **Custom domains**, dentro do projeto no Cloudflare.
 
 ---

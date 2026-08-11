@@ -170,7 +170,7 @@ function renderRelVendas(){
 function cabecalhoFolha(periodoTxt, qtdPed, qtdCli){
   return `
   <div class="folha-topo">
-    <img src="img/logo.svg" alt="Shaliach" class="folha-logo">
+    <img src="img/logo.svg" alt="Gustavo de Oliveira" class="folha-logo">
     <div class="folha-info">
       <h3>Relatório de vendas e comissões</h3>
       <div>Período: <b>${esc(periodoTxt)}</b></div>
