@@ -1,0 +1,444 @@
+{
+  "boardName": "NST Print",
+  "seq": 5,
+  "usuario": "Gustavo de Oliveira",
+  "listas": {
+    "categorias": [
+      "Cliente",
+      "Prospect"
+    ],
+    "origens": [
+      "Indicação",
+      "Instagram"
+    ],
+    "setores": [
+      "Confecção",
+      "Gráfica"
+    ],
+    "responsaveis": [
+      "Gustavo de Oliveira"
+    ],
+    "produtos": [
+      "Tinta Branca",
+      "TPU"
+    ]
+  },
+  "columns": [
+    {
+      "id": "00000000-0000-4000-8000-000000000000",
+      "name": "Contato Iniciado"
+    },
+    {
+      "id": "00000001-0000-4000-8000-000000000000",
+      "name": "Conversando"
+    },
+    {
+      "id": "00000002-0000-4000-8000-000000000000",
+      "name": "Em Negociação"
+    },
+    {
+      "id": "00000003-0000-4000-8000-000000000000",
+      "name": "Visita Agendada"
+    },
+    {
+      "id": "00000004-0000-4000-8000-000000000000",
+      "name": "Amostra Enviada"
+    },
+    {
+      "id": "00000005-0000-4000-8000-000000000000",
+      "name": "Cliente Comprador"
+    }
+  ],
+  "cards": [
+    {
+      "id": "a0000001-0000-4000-8000-000000000000",
+      "clienteId": "b0000001-0000-4000-8000-000000000000",
+      "columnId": "00000000-0000-4000-8000-000000000000",
+      "numero": 1,
+      "posicao": 0,
+      "nome": "Alfa Confecções",
+      "cnpj": "",
+      "razaoSocial": "",
+      "categoria": "Cliente",
+      "origem": "Indicação",
+      "setor": "Confecção",
+      "responsavel": "Gustavo de Oliveira",
+      "descricao": "",
+      "email": "",
+      "whatsapp": "+55 47 90001-0001",
+      "telefone": "",
+      "celular": "",
+      "fax": "",
+      "ramal": "",
+      "website": "",
+      "cep": "88350-000",
+      "pais": "Brasil",
+      "estado": "SC",
+      "cidade": "Brusque",
+      "bairro": "Centro",
+      "rua": "Rua Exemplo",
+      "numero_end": "101",
+      "complemento": "",
+      "redes": {
+        "facebook": "",
+        "twitter": "",
+        "linkedin": "",
+        "skype": "",
+        "instagram": ""
+      },
+      "produtos": [],
+      "pessoas": [
+        {
+          "id": "c0000001-0000-4000-8000-000000000000",
+          "nome": "Contato 1",
+          "cargo": "Comprador",
+          "email": "",
+          "celular": "",
+          "whatsapp": "",
+          "telefone": ""
+        }
+      ],
+      "valor": 0,
+      "status": "andamento",
+      "estrelas": 0,
+      "motivoPerda": "",
+      "descricaoPerda": "",
+      "dataInicio": "2026-08-03",
+      "dataConclusao": "",
+      "agendamentos": [
+        {
+          "id": "d0000001-0000-4000-8000-000000000000",
+          "tipo": "whatsapp",
+          "data": "2026-08-20T09:00",
+          "nota": "Perguntar do pedido",
+          "concluido": false,
+          "criadoEm": "2026-08-03T12:00:00.000Z",
+          "criadoPor": "Gustavo de Oliveira",
+          "comentarios": []
+        }
+      ],
+      "pedidos": [],
+      "codigo": "1-exemplo@crm.local",
+      "criadoEm": "2026-08-03T10:00:00.000Z",
+      "criadoPor": "Gustavo de Oliveira",
+      "atualizadoEm": "2026-08-03T10:00:00.000Z",
+      "etapaEm": "2026-08-03T10:00:00.000Z"
+    },
+    {
+      "id": "a0000002-0000-4000-8000-000000000000",
+      "clienteId": "b0000002-0000-4000-8000-000000000000",
+      "columnId": "00000000-0000-4000-8000-000000000000",
+      "numero": 2,
+      "posicao": 1,
+      "nome": "Beta Uniformes",
+      "cnpj": "",
+      "razaoSocial": "",
+      "categoria": "Cliente",
+      "origem": "Indicação",
+      "setor": "Confecção",
+      "responsavel": "Gustavo de Oliveira",
+      "descricao": "",
+      "email": "",
+      "whatsapp": "+55 47 90002-0002",
+      "telefone": "",
+      "celular": "",
+      "fax": "",
+      "ramal": "",
+      "website": "",
+      "cep": "88350-000",
+      "pais": "Brasil",
+      "estado": "SC",
+      "cidade": "Taió",
+      "bairro": "Centro",
+      "rua": "Rua Exemplo",
+      "numero_end": "102",
+      "complemento": "",
+      "redes": {
+        "facebook": "",
+        "twitter": "",
+        "linkedin": "",
+        "skype": "",
+        "instagram": ""
+      },
+      "produtos": [],
+      "pessoas": [
+        {
+          "id": "c0000002-0000-4000-8000-000000000000",
+          "nome": "Contato 2",
+          "cargo": "Comprador",
+          "email": "",
+          "celular": "",
+          "whatsapp": "",
+          "telefone": ""
+        }
+      ],
+      "valor": 0,
+      "status": "andamento",
+      "estrelas": 0,
+      "motivoPerda": "",
+      "descricaoPerda": "",
+      "dataInicio": "2026-08-03",
+      "dataConclusao": "",
+      "agendamentos": [
+        {
+          "id": "d0000002-0000-4000-8000-000000000000",
+          "tipo": "visita",
+          "data": "2026-09-10T14:00",
+          "nota": "Levar amostra",
+          "concluido": false,
+          "criadoEm": "2026-08-03T12:00:00.000Z",
+          "criadoPor": "Gustavo de Oliveira",
+          "comentarios": []
+        }
+      ],
+      "pedidos": [],
+      "codigo": "2-exemplo@crm.local",
+      "criadoEm": "2026-08-03T10:00:00.000Z",
+      "criadoPor": "Gustavo de Oliveira",
+      "atualizadoEm": "2026-08-03T10:00:00.000Z",
+      "etapaEm": "2026-08-03T10:00:00.000Z"
+    },
+    {
+      "id": "a0000003-0000-4000-8000-000000000000",
+      "clienteId": "b0000003-0000-4000-8000-000000000000",
+      "columnId": "00000002-0000-4000-8000-000000000000",
+      "numero": 3,
+      "posicao": 0,
+      "nome": "Gama Malhas",
+      "cnpj": "",
+      "razaoSocial": "",
+      "categoria": "Cliente",
+      "origem": "Indicação",
+      "setor": "Confecção",
+      "responsavel": "Gustavo de Oliveira",
+      "descricao": "",
+      "email": "",
+      "whatsapp": "+55 47 90003-0003",
+      "telefone": "",
+      "celular": "",
+      "fax": "",
+      "ramal": "",
+      "website": "",
+      "cep": "88350-000",
+      "pais": "Brasil",
+      "estado": "SC",
+      "cidade": "Blumenau",
+      "bairro": "Centro",
+      "rua": "Rua Exemplo",
+      "numero_end": "103",
+      "complemento": "",
+      "redes": {
+        "facebook": "",
+        "twitter": "",
+        "linkedin": "",
+        "skype": "",
+        "instagram": ""
+      },
+      "produtos": [],
+      "pessoas": [
+        {
+          "id": "c0000003-0000-4000-8000-000000000000",
+          "nome": "Contato 3",
+          "cargo": "Comprador",
+          "email": "",
+          "celular": "",
+          "whatsapp": "",
+          "telefone": ""
+        }
+      ],
+      "valor": 0,
+      "status": "andamento",
+      "estrelas": 0,
+      "motivoPerda": "",
+      "descricaoPerda": "",
+      "dataInicio": "2026-08-03",
+      "dataConclusao": "",
+      "agendamentos": [],
+      "pedidos": [],
+      "codigo": "3-exemplo@crm.local",
+      "criadoEm": "2026-08-03T10:00:00.000Z",
+      "criadoPor": "Gustavo de Oliveira",
+      "atualizadoEm": "2026-08-03T10:00:00.000Z",
+      "etapaEm": "2026-08-03T10:00:00.000Z"
+    },
+    {
+      "id": "a0000004-0000-4000-8000-000000000000",
+      "clienteId": "b0000004-0000-4000-8000-000000000000",
+      "columnId": "00000002-0000-4000-8000-000000000000",
+      "numero": 4,
+      "posicao": 1,
+      "nome": "Delta Estamparia",
+      "cnpj": "",
+      "razaoSocial": "",
+      "categoria": "Cliente",
+      "origem": "Indicação",
+      "setor": "Confecção",
+      "responsavel": "Gustavo de Oliveira",
+      "descricao": "",
+      "email": "",
+      "whatsapp": "+55 47 90004-0004",
+      "telefone": "",
+      "celular": "",
+      "fax": "",
+      "ramal": "",
+      "website": "",
+      "cep": "88350-000",
+      "pais": "Brasil",
+      "estado": "SC",
+      "cidade": "São José",
+      "bairro": "Centro",
+      "rua": "Rua Exemplo",
+      "numero_end": "104",
+      "complemento": "",
+      "redes": {
+        "facebook": "",
+        "twitter": "",
+        "linkedin": "",
+        "skype": "",
+        "instagram": ""
+      },
+      "produtos": [],
+      "pessoas": [
+        {
+          "id": "c0000004-0000-4000-8000-000000000000",
+          "nome": "Contato 4",
+          "cargo": "Comprador",
+          "email": "",
+          "celular": "",
+          "whatsapp": "",
+          "telefone": ""
+        }
+      ],
+      "valor": 0,
+      "status": "andamento",
+      "estrelas": 0,
+      "motivoPerda": "",
+      "descricaoPerda": "",
+      "dataInicio": "2026-08-03",
+      "dataConclusao": "",
+      "agendamentos": [
+        {
+          "id": "d0000004-0000-4000-8000-000000000000",
+          "tipo": "ligacao",
+          "data": "2026-08-05T10:00",
+          "nota": "Retornar",
+          "concluido": true,
+          "criadoEm": "2026-08-03T12:00:00.000Z",
+          "criadoPor": "Gustavo de Oliveira",
+          "comentarios": [
+            {
+              "id": "h0000001-0000-4000-8000-000000000000",
+              "texto": "Atendeu, pediu para ligar semana que vem.",
+              "autor": "Gustavo de Oliveira",
+              "criadoEm": "2026-08-05T11:00:00.000Z"
+            }
+          ]
+        }
+      ],
+      "pedidos": [
+        {
+          "id": "e0000001-0000-4000-8000-000000000000",
+          "numero": 1,
+          "data": "2026-08-07",
+          "formaPagamento": "Boleto 30 - 45 - 60 Dias",
+          "comissaoPct": 12,
+          "atual": true,
+          "itens": [
+            {
+              "id": "f0000001-0000-4000-8000-000000000000",
+              "produto": "Tinta Branca",
+              "quantidade": 4,
+              "preco": 190
+            },
+            {
+              "id": "f0000002-0000-4000-8000-000000000000",
+              "produto": "TPU",
+              "quantidade": 4,
+              "preco": 75
+            }
+          ],
+          "comentarios": [
+            {
+              "id": "g0000001-0000-4000-8000-000000000000",
+              "texto": "Entregar junto com o pedido anterior.",
+              "autor": "Gustavo de Oliveira",
+              "criadoEm": "2026-08-07T14:00:00.000Z"
+            }
+          ],
+          "criadoEm": "2026-08-07T13:00:00.000Z",
+          "criadoPor": "Gustavo de Oliveira",
+          "atualizadoEm": "2026-08-07T13:00:00.000Z"
+        }
+      ],
+      "codigo": "4-exemplo@crm.local",
+      "criadoEm": "2026-08-03T10:00:00.000Z",
+      "criadoPor": "Gustavo de Oliveira",
+      "atualizadoEm": "2026-08-03T10:00:00.000Z",
+      "etapaEm": "2026-08-03T10:00:00.000Z"
+    },
+    {
+      "id": "a0000005-0000-4000-8000-000000000000",
+      "clienteId": "b0000005-0000-4000-8000-000000000000",
+      "columnId": "00000005-0000-4000-8000-000000000000",
+      "numero": 5,
+      "posicao": 0,
+      "nome": "Epsilon Têxtil",
+      "cnpj": "",
+      "razaoSocial": "",
+      "categoria": "Cliente",
+      "origem": "Indicação",
+      "setor": "Confecção",
+      "responsavel": "Gustavo de Oliveira",
+      "descricao": "",
+      "email": "",
+      "whatsapp": "+55 47 90005-0005",
+      "telefone": "",
+      "celular": "",
+      "fax": "",
+      "ramal": "",
+      "website": "",
+      "cep": "88350-000",
+      "pais": "Brasil",
+      "estado": "RS",
+      "cidade": "Caxias do Sul",
+      "bairro": "Centro",
+      "rua": "Rua Exemplo",
+      "numero_end": "105",
+      "complemento": "",
+      "redes": {
+        "facebook": "",
+        "twitter": "",
+        "linkedin": "",
+        "skype": "",
+        "instagram": ""
+      },
+      "produtos": [],
+      "pessoas": [
+        {
+          "id": "c0000005-0000-4000-8000-000000000000",
+          "nome": "Contato 5",
+          "cargo": "Comprador",
+          "email": "",
+          "celular": "",
+          "whatsapp": "",
+          "telefone": ""
+        }
+      ],
+      "valor": 0,
+      "status": "andamento",
+      "estrelas": 0,
+      "motivoPerda": "",
+      "descricaoPerda": "",
+      "dataInicio": "2026-08-03",
+      "dataConclusao": "",
+      "agendamentos": [],
+      "pedidos": [],
+      "codigo": "5-exemplo@crm.local",
+      "criadoEm": "2026-08-03T10:00:00.000Z",
+      "criadoPor": "Gustavo de Oliveira",
+      "atualizadoEm": "2026-08-03T10:00:00.000Z",
+      "etapaEm": "2026-08-03T10:00:00.000Z"
+    }
+  ],
+  "atualizadoEm": "2026-08-07T13:00:00.000Z"
+}
