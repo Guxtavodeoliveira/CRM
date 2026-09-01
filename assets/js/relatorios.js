@@ -27,6 +27,7 @@ function ligarRelatorios(){
     b.onclick = () => {
       menu.classList.remove("show");
       if(b.dataset.rel === "vendas") abrirRelVendas();
+      if(b.dataset.rel === "clientes") abrirRelClientes();
     };
   });
 
@@ -299,5 +300,310 @@ function exportarRelXlsx(){
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Vendas e comissões");
   XLSX.writeFile(wb, `vendas-comissoes-${relDe || "inicio"}_a_${relAte || "hoje"}.xlsx`);
+  toast("Planilha gerada.");
+}
+
+/* =========================================================
+   Relatório de clientes
+   Filtros por etapa do funil, estado e cidade — todos começam
+   em "todos". A cidade só oferece o que existe no estado
+   escolhido, e a ordenação é escolhida pelo usuário.
+   ========================================================= */
+
+let relCliEtapa  = "todas";
+let relCliUF     = "todos";
+let relCliCidade = "todas";
+let relCliOrdem  = "nome";
+
+/* ---------------- apoio ---------------- */
+/** Chave sem acento e sem caixa, para comparar nomes de cidade. */
+function chaveTexto(s){
+  return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .trim().toLowerCase();
+}
+
+function nomeEtapa(columnId){
+  const col = dados.columns.find(c => c.id === columnId);
+  return col ? col.name : "—";
+}
+
+function posEtapa(columnId){
+  const i = dados.columns.findIndex(c => c.id === columnId);
+  return i < 0 ? 9999 : i;
+}
+
+/** Telefone de contato: usa o fixo e, na falta dele, celular ou WhatsApp. */
+function telefoneCliente(card){
+  return card.telefone || card.celular || card.whatsapp || "";
+}
+
+function cidadeUf(card){
+  const cid = (card.cidade || "").trim();
+  const uf  = (card.estado || "").trim();
+  if(cid && uf) return cid + "/" + uf;
+  return cid || uf || "";
+}
+
+/* ---------------- filtros ---------------- */
+/** Base dos demais filtros: os clientes da etapa escolhida. */
+function clientesDaEtapa(){
+  return dados.cards.filter(c => relCliEtapa === "todas" || c.columnId === relCliEtapa);
+}
+
+/** Só os estados em que realmente existem clientes. */
+function estadosDisponiveis(){
+  const set = new Set();
+  clientesDaEtapa().forEach(c => { if(c.estado) set.add(c.estado); });
+  return [...set].sort();
+}
+
+/** Cidades do estado escolhido (ou de todos, quando não há estado). */
+function cidadesDisponiveis(){
+  const mapa = new Map();
+  clientesDaEtapa().forEach(c => {
+    if(!c.cidade) return;
+    if(relCliUF !== "todos" && (c.estado || "") !== relCliUF) return;
+    const k = chaveTexto(c.cidade);
+    if(!mapa.has(k)) mapa.set(k, { chave:k, nome:c.cidade.trim(), uf:c.estado || "" });
+  });
+  return [...mapa.values()].sort((a,b) => a.nome.localeCompare(b.nome, "pt-BR"));
+}
+
+function clientesFiltrados(){
+  return clientesDaEtapa().filter(c => {
+    if(relCliUF !== "todos" && (c.estado || "") !== relCliUF) return false;
+    if(relCliCidade !== "todas" && chaveTexto(c.cidade) !== relCliCidade) return false;
+    return true;
+  });
+}
+
+/** Se a etapa mudou e o estado/cidade não existem mais, volta para "todos". */
+function ajustarFiltrosCli(){
+  if(relCliEtapa !== "todas" && !dados.columns.some(c => c.id === relCliEtapa)){
+    relCliEtapa = "todas";
+  }
+  if(relCliUF !== "todos" && !estadosDisponiveis().includes(relCliUF)){
+    relCliUF = "todos"; relCliCidade = "todas";
+  }
+  if(relCliCidade !== "todas" && !cidadesDisponiveis().some(c => c.chave === relCliCidade)){
+    relCliCidade = "todas";
+  }
+}
+
+/* ---------------- ordenação ---------------- */
+function txtOrd(v){ return String(v || "").trim(); }
+
+const ORDENS_CLI = {
+  nome: {
+    label: "Nome (A → Z)",
+    fn: (a,b) => txtOrd(a.nome).localeCompare(txtOrd(b.nome), "pt-BR")
+  },
+  cidade: {
+    label: "Cidade / Estado",
+    fn: (a,b) => {
+      const ea = txtOrd(a.estado), eb = txtOrd(b.estado);
+      if(!ea !== !eb) return ea ? -1 : 1;          // sem estado vai para o fim
+      const r1 = ea.localeCompare(eb, "pt-BR"); if(r1) return r1;
+      const ca = txtOrd(a.cidade), cb = txtOrd(b.cidade);
+      if(!ca !== !cb) return ca ? -1 : 1;
+      const r2 = ca.localeCompare(cb, "pt-BR"); if(r2) return r2;
+      return txtOrd(a.nome).localeCompare(txtOrd(b.nome), "pt-BR");
+    }
+  },
+  etapa: {
+    label: "Etapa do funil",
+    fn: (a,b) => posEtapa(a.columnId) - posEtapa(b.columnId)
+              || txtOrd(a.nome).localeCompare(txtOrd(b.nome), "pt-BR")
+  },
+  recentes: {
+    label: "Cadastro mais recente",
+    fn: (a,b) => txtOrd(b.criadoEm).localeCompare(txtOrd(a.criadoEm))
+              || txtOrd(a.nome).localeCompare(txtOrd(b.nome), "pt-BR")
+  }
+};
+
+/* ---------------- tela ---------------- */
+function abrirRelClientes(){
+  ajustarFiltrosCli();
+  renderRelClientes();
+  document.getElementById("relOverlay").classList.add("show");
+}
+
+function resumoFiltrosCli(cidades){
+  const cid = cidades.find(c => c.chave === relCliCidade);
+  return [
+    relCliEtapa  === "todas" ? "Todas as etapas"   : nomeEtapa(relCliEtapa),
+    relCliUF     === "todos" ? "Todos os estados"  : relCliUF,
+    relCliCidade === "todas" ? "Todas as cidades"  : (cid ? cid.nome : "")
+  ].filter(Boolean).join(" · ");
+}
+
+function renderRelClientes(){
+  const ufs     = estadosDisponiveis();
+  const cidades = cidadesDisponiveis();
+  const lista   = clientesFiltrados().slice().sort(ORDENS_CLI[relCliOrdem].fn);
+
+  const qtdCidades = new Set(lista.map(c => chaveTexto(c.cidade)).filter(Boolean)).size;
+  const qtdEstados = new Set(lista.map(c => c.estado).filter(Boolean)).size;
+  const semTel     = lista.filter(c => !telefoneCliente(c)).length;
+  const filtroTxt  = resumoFiltrosCli(cidades);
+
+  document.getElementById("relContent").innerHTML = `
+    <div class="modal-head">
+      <div class="avatar-sq">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <h2>Clientes</h2>
+        <div class="sub">${esc(filtroTxt)} · ${lista.length} cliente(s)</div>
+      </div>
+      <button class="icon-btn lg" id="relFechar" aria-label="Fechar">${icon("x",17,2.2)}</button>
+    </div>
+
+    <div class="rel-filtros">
+      <div class="rel-sel">
+        <label>Etapa
+          <select class="inp" id="fCliEtapa">
+            <option value="todas">Todas</option>
+            ${dados.columns.map(c =>
+              `<option value="${esc(c.id)}" ${c.id === relCliEtapa ? "selected" : ""}>${esc(c.name)}</option>`).join("")}
+          </select>
+        </label>
+        <label>Estado
+          <select class="inp" id="fCliUF">
+            <option value="todos">Todos</option>
+            ${ufs.map(u =>
+              `<option value="${esc(u)}" ${u === relCliUF ? "selected" : ""}>${esc(u)}</option>`).join("")}
+          </select>
+        </label>
+        <label>Cidade
+          <select class="inp" id="fCliCidade">
+            <option value="todas">Todas</option>
+            ${cidades.map(c =>
+              `<option value="${esc(c.chave)}" ${c.chave === relCliCidade ? "selected" : ""}>${esc(c.nome)}${relCliUF === "todos" && c.uf ? " - " + esc(c.uf) : ""}</option>`).join("")}
+          </select>
+        </label>
+        <label>Ordenar por
+          <select class="inp" id="fCliOrdem">
+            ${Object.entries(ORDENS_CLI).map(([k,v]) =>
+              `<option value="${k}" ${k === relCliOrdem ? "selected" : ""}>${esc(v.label)}</option>`).join("")}
+          </select>
+        </label>
+      </div>
+      <button class="btn btn-soft nao-imprime" id="fCliLimpar" type="button">Limpar filtros</button>
+    </div>
+
+    <div class="modal-body" id="relBody">
+      <div id="relFolha" class="folha">
+        <div class="folha-topo">
+          <img src="img/logo.svg" alt="Gustavo de Oliveira" class="folha-logo">
+          <div class="folha-info">
+            <h3>Relatório de clientes</h3>
+            <div>Filtros: <b>${esc(filtroTxt)}</b></div>
+            <div>${lista.length} cliente(s) · Ordenado por: ${esc(ORDENS_CLI[relCliOrdem].label)} · Funil: ${esc(dados.boardName || "")}</div>
+          </div>
+        </div>
+
+        <div class="rel-cards">
+          <div class="destaque"><span>Clientes</span><b>${lista.length}</b></div>
+          <div><span>Cidades</span><b>${qtdCidades}</b></div>
+          <div><span>Estados</span><b>${qtdEstados}</b></div>
+        </div>
+
+        ${semTel ? `<div class="rel-aviso">${semTel} cliente(s) sem telefone cadastrado — aparecem com trav\u00e7o na coluna Telefone.</div>` : ""}
+
+        ${lista.length ? `
+          <table class="rel-tab solta">
+            <thead>
+              <tr>
+                <th style="width:6%">#</th>
+                <th style="width:29%">Cliente</th>
+                <th style="width:17%">CNPJ</th>
+                <th style="width:15%">Telefone</th>
+                <th style="width:17%">Cidade/Estado</th>
+                <th style="width:16%">Etapa no funil</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${lista.map(c => `
+                <tr>
+                  <td class="muted">${c.numero || "—"}</td>
+                  <td><b>${esc(c.nome || "—")}</b></td>
+                  <td>${esc(c.cnpj || "—")}</td>
+                  <td>${esc(telefoneCliente(c) || "—")}</td>
+                  <td>${esc(cidadeUf(c) || "—")}</td>
+                  <td>${esc(nomeEtapa(c.columnId))}</td>
+                </tr>`).join("")}
+            </tbody>
+          </table>`
+        : `<div class="empty-state">Nenhum cliente com esses filtros.</div>`}
+
+        <div class="rel-rodape">
+          Emitido em ${esc(fmtLongo(new Date().toISOString()))} · ${esc(dados.boardName || "")}
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <span class="left muted" style="font-size:12.5px">Em “Imprimir”, escolha <b>Salvar como PDF</b> no destino.</span>
+      <button class="btn" id="relCliXlsx">${icon("save",14,2)} Excel</button>
+      <button class="btn btn-primary" id="relCliPrint">${icon("doc",14,2)} Imprimir / Salvar PDF</button>
+    </div>
+  `;
+  ligarRelClientes();
+}
+
+/* ---------------- eventos ---------------- */
+function ligarRelClientes(){
+  const box = document.getElementById("relContent");
+  box.querySelector("#relFechar").onclick = fecharRelatorio;
+
+  box.querySelector("#fCliEtapa").onchange = e => {
+    relCliEtapa = e.target.value;
+    ajustarFiltrosCli();
+    renderRelClientes();
+  };
+  // trocar de estado sempre solta a cidade, senão sobra um filtro impossível
+  box.querySelector("#fCliUF").onchange = e => {
+    relCliUF = e.target.value;
+    relCliCidade = "todas";
+    renderRelClientes();
+  };
+  box.querySelector("#fCliCidade").onchange = e => {
+    relCliCidade = e.target.value;
+    renderRelClientes();
+  };
+  box.querySelector("#fCliOrdem").onchange = e => {
+    relCliOrdem = e.target.value;
+    renderRelClientes();
+  };
+  box.querySelector("#fCliLimpar").onclick = () => {
+    relCliEtapa = "todas"; relCliUF = "todos";
+    relCliCidade = "todas"; relCliOrdem = "nome";
+    renderRelClientes();
+  };
+
+  box.querySelector("#relCliPrint").onclick = () => imprimirFolha("relOverlay");
+  box.querySelector("#relCliXlsx").onclick = exportarClientesXlsx;
+}
+
+/* ---------------- Excel ---------------- */
+function exportarClientesXlsx(){
+  const lista = clientesFiltrados().slice().sort(ORDENS_CLI[relCliOrdem].fn);
+  if(!lista.length){ toast("Nenhum cliente com esses filtros.", "err"); return; }
+
+  const cab = ["#","Cliente","CNPJ","Telefone","Cidade","Estado","Etapa no funil"];
+  const corpo = lista.map(c => [
+    c.numero || "", c.nome || "", c.cnpj || "", telefoneCliente(c),
+    c.cidade || "", c.estado || "", nomeEtapa(c.columnId)
+  ]);
+
+  const ws = montarAba(cab, corpo, {
+    texto: [0,2,3],
+    largura: [8,34,20,18,22,10,22]
+  });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Clientes");
+  XLSX.writeFile(wb, "clientes.xlsx");
   toast("Planilha gerada.");
 }

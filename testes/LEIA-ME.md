@@ -11,10 +11,14 @@ cd testes
 npm install jsdom
 node smoke.js
 node campos-novos.js
+node relatorio-clientes.js
 ```
 
-Saída esperada: `37 de 37 verificações passaram` e, no segundo,
-`18 de 18 verificações passaram`.
+Saída esperada: `37 de 37`, `18 de 18` e `23 de 23` verificações passaram.
+
+O `relatorio-clientes.js` cobre o relatório de clientes: filtros de etapa,
+estado e cidade, a dependência da cidade em relação ao estado, as quatro
+ordenações, as colunas da folha e a exportação para Excel.
 
 O `campos-novos.js` cobre a mudança da ficha do cliente: campos removidos,
 inscrição estadual, responsável da empresa, dados bancários, etapa automática,

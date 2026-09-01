@@ -358,6 +358,12 @@ Isto existe para ninguém desfazer sem saber o motivo.
   o rótulo dos botões de planilha virou "PLANILHAS")
 
 **Acrescentado a pedido do dono:**
+- **Relatório de clientes** (menu Relatórios → Clientes): lista com nome, CNPJ,
+  telefone, cidade/estado e a etapa em que o cliente está no funil. Filtros de
+  etapa, estado e cidade, todos começando em "todos"; a lista de cidades só
+  mostra as do estado escolhido, e trocar o estado sempre solta a cidade.
+  Quatro ordenações: nome, cidade/estado, etapa do funil e cadastro mais
+  recente. Sai em PDF pela impressão do navegador e em Excel.
 - "Nome" virou **"Nome fantasia / Nome do cliente"**.
 - **Inscrição estadual** e **Responsável** — este último agora quer dizer *quem
   responde pela empresa cliente*, não o vendedor. Atenção ao mexer: o campo
