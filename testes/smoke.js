@@ -94,7 +94,7 @@ function montar(modo, tabelas){
   w.__sbFake = sbFake;
 
   const arquivos = ["config.js","auth.js","util.js","storage.js","banco.js","board.js",
-                    "empresa.js","negocio.js","pedidos.js","relatorios.js","segmentos.js","produtos.js","agenda.js",
+                    "empresa.js","negocio.js","pedidos.js","relatorios.js","segmentos.js","produtos.js","ordenacao.js","agenda.js",
                     "exportar-agendor.js","usuario.js","main.js"];
   let codigo = "const location = window.__loc;\n" +
     arquivos.map(f => fs.readFileSync(RAIZ + "assets/js/" + f, "utf8")).join("\n;\n");

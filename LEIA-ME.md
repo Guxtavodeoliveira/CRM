@@ -71,6 +71,16 @@ empresa e redes sociais.
 - Categoria, origem, setor, responsável e produtos guardam o que você digita e passam a
   aparecer como sugestão nos próximos cadastros.
 
+**Ordenar cada etapa** (botão *Ordenar*, embaixo do nome da coluna)
+Cada etapa tem a sua ordenação, independente das outras: **estado**, **cidade**,
+**segmento em destaque** (você escolhe qual segmento sobe; vale mesmo para quem
+tem mais de um), **data de cadastro** e, nas etapas com pedido lançado, **data
+do último pedido** — começando pelos mais antigos, para você ir chamando quem
+não compra há mais tempo. Dá para marcar vários: valem na ordem em que você
+marcar (1, 2, 3). A tirinha embaixo do nome da etapa mostra o que está valendo e
+tem um **x** para voltar à ordem manual. Fica guardado no navegador e não altera
+nenhum dado.
+
 **Ordem dos cartões**
 Arraste o cartão para cima ou para baixo **dentro da mesma coluna** para definir a
 prioridade. Uma linha roxa mostra onde ele vai entrar. A ordem fica salva no arquivo,
@@ -217,6 +227,7 @@ assets/js/pedidos.js  aba Pedidos: pedido atual, histórico e itens
 assets/js/relatorios.js  relatórios, impressão em PDF e Excel
 assets/js/segmentos.js   segmentos do negócio, etiquetas no cartão e filtro
 assets/js/produtos.js    tabela de preços do funil (linhas, sublinhas, produtos)
+assets/js/ordenacao.js   ordenação dos cartões dentro de cada etapa
 img/                  logo, favicon e ícones
 banco/                schema.sql, as migrações .sql e migrar.js (Supabase)
 assets/js/main.js     inicialização e atalhos

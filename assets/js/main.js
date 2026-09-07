@@ -41,6 +41,7 @@ document.addEventListener("keydown", e => {
   if(e.key === "Escape"){
     fecharMenu();
     fecharSeletorSegmentos();
+    fecharMenuOrdem();
     if(document.getElementById("promptOverlay").classList.contains("show")) return;
     if(document.getElementById("confirmOverlay").classList.contains("show")) return;
     if(document.getElementById("schedOverlay").classList.contains("show")) return fecharAgendar();
@@ -79,6 +80,7 @@ ligarFicha();
 ligarRelatorios();
 ligarSegmentos();
 ligarProdutos();
+ligarOrdenacao();
 ligarPedidoModal();
 ligarEmpresa();
 ligarAgendar();

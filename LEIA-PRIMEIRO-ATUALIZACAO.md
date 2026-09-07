@@ -25,20 +25,10 @@ Assim os arquivos são trocados e o `.git` continua no lugar.
 
 ---
 
-## PRIMEIRO: rode o SQL novo no Supabase
+## Desta vez NÃO tem SQL novo
 
-Esta versão tem **duas tabelas novas** no banco (as dos produtos). Antes de
-publicar, faça isto uma vez (leva 30 segundos):
-
-1. Entre em https://supabase.com e abra o seu projeto.
-2. Menu da esquerda → **SQL Editor** → **New query**.
-3. Abra o arquivo **`banco/atualizar-produtos.sql`** (Bloco de Notas serve),
-   copie tudo e cole na janela.
-4. Clique em **Run**. Tem que aparecer *Success*.
-
-Pode rodar de novo sem medo: nada é apagado, e os pedidos que você já lançou
-continuam iguais. Se publicar antes de rodar, o CRM continua funcionando
-normalmente — só avisa que os produtos ainda não estão indo para a nuvem.
+Esta atualização mexe só na tela: é substituir os arquivos e publicar. Se você
+ainda não rodou os SQL das versões anteriores, veja o fim deste arquivo.
 
 ---
 
@@ -55,58 +45,38 @@ antiga que ele guarda em cache.
 
 ## O que mudou nesta versão
 
-**Tabela de preços por funil.** Botão novo **Produtos**, na barra, ao lado de
-*Segmentos*. Ali você monta a sua lista de produtos em três níveis:
+**Ordenar os cartões dentro de cada etapa.** Embaixo do nome de cada coluna do
+funil apareceu um botãozinho **Ordenar**. Cada etapa tem a sua própria
+ordenação, independente das outras.
 
-```
-Papel para sublimação          (linha)
-  └ Fast Dry                   (sublinha)
-      └ Bobina 90g 1,60m x 100m   mínimo · médio · máximo
-```
+Os critérios:
 
-- **Três preços por produto**, sempre **por unidade do que você vende** (a
-  bobina, o galão, o pacote): **mínimo em vermelho**, **médio em marrom** e
-  **máximo em verde**. O que a unidade contém (100 metros, 1 litro) entra no
-  nome do produto.
-- **Anotação — só para você**: um campo de texto livre em cada produto (prazo
-  da fábrica, com quem falar, até onde dá para descer). Fica guardado ali e
-  **não aparece** no pedido, na ficha em PDF, no relatório nem na planilha.
-  Produto com anotação ganha um risquinho discreto do lado do nome.
-- O **lápis** é editar, a **lixeira** é excluir. Excluindo uma linha, os
-  produtos dela **não são apagados**: vão para "Sem linha", no topo, e você
-  reorganiza quando quiser.
-- A busca no topo do modal acha por produto, linha ou sublinha.
-- Cada funil tem a sua tabela: a da PRICOREL não aparece na NST Print.
+- **Estado** — A → Z ou Z → A; quem está sem estado vai para o fim.
+- **Cidade** — mesma coisa.
+- **Segmento em destaque** — você escolhe **qual** segmento quer em cima. Quem
+  tem aquele segmento sobe, mesmo que o negócio tenha mais de um (marcando
+  *DTF*, um cartão com *DTF + Confecção* também sobe).
+- **Data de cadastro** — mais antigos ou mais novos primeiro.
+- **Data do último pedido** — aparece só nas etapas que têm pedido lançado (na
+  prática, a *Cliente Comprador*). Começa pelos **mais antigos**, que é o que
+  serve para você ir chamando quem não compra há mais tempo.
 
-**Na hora do pedido.** O campo do produto agora tem duas formas de preencher:
+**Os critérios somam.** Marque quantos quiser: eles valem **na ordem em que
+você marcar**, e o número 1, 2, 3 aparece do lado de cada um. Exemplo: marcando
+*Estado*, depois *Cidade* e depois *DTF*, a etapa fica agrupada por estado, as
+cidades em ordem dentro de cada estado, e quem é DTF na frente no caso de
+empate.
 
-- **digitando**, e a lista vai filtrando enquanto você escreve;
-- **clicando na setinha** do lado do campo, que abre a lista inteira já
-  separada por linha e sublinha, com a faixa de preço de cada um. No fim da
-  lista continuam os nomes que você já digitou à mão em pedidos antigos.
+**A tirinha da etapa** mostra a ordenação que está valendo (por exemplo
+*Estado · Cidade · DTF*) e tem um **x** para voltar à ordem manual — aquela que
+você monta arrastando os cartões, que continua guardada o tempo todo. Se você
+arrastar um cartão numa etapa ordenada, o CRM avisa que a posição foi guardada
+mas não aparece enquanto a ordenação estiver ligada.
 
-Escolhido o produto, aparece embaixo a faixa dele. **A única coisa que você
-digita é o preço que fechou.** Se esse preço ficar **abaixo do mínimo ou acima
-do máximo**, a linha fica vermelha na hora e, ao salvar, aparece um aviso
-dizendo qual item e quanto está fora. **É só um aviso**: confirmando, o pedido
-salva com o preço que você fechou — cada cliente tem a sua negociação.
-
-**Pedido e ficha em PDF.** Na aba *Pedidos* e na ficha em PDF, cada item passou
-a mostrar embaixo do nome a **linha › sublinha** do produto. Na aba *Pedidos*
-(que é só sua) o item fechado fora da faixa ganha uma marca vermelha
-*abaixo do mín.* / *acima do máx.*; **na ficha em PDF isso não aparece** — ela
-continua limpa para mandar para a fábrica.
-
-**Relatório novo: Produtos.** Em *Relatórios* → *Produtos*. É a sua **tabela de
-preços em papel**: lista os produtos cadastrados naquele funil, agrupados por
-linha e sublinha, com mínimo, médio, máximo e a **margem** (quanto o máximo está
-acima do mínimo, em reais e em %). Nada de venda entra aqui — é o cadastro puro,
-para consultar e levar na visita. Dá para filtrar por linha, ordenar por nome ou
-por preço, imprimir em PDF e baixar em Excel.
-
-Nada do que já existia mudou: negócios, segmentos, clientes, agenda, comissões
-e os pedidos antigos continuam iguais. Quem preferir digitar o produto na mão,
-como sempre fez, continua podendo.
+A escolha fica gravada no seu navegador, por funil e por etapa: ao reabrir o
+CRM, a etapa continua ordenada do jeito que você deixou. Ordenação é só
+visualização — **nenhum dado é alterado**, e ela convive com a busca e com o
+filtro de segmento/estado/cidade que já existiam.
 
 ---
 

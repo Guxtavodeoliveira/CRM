@@ -21,8 +21,10 @@ function render(){
   board.innerHTML = "";
 
   dados.columns.forEach((col, idx) => {
-    const lista = visiveis.filter(c => c.columnId === col.id)
-                          .sort((a,b) => (a.posicao || 0) - (b.posicao || 0));
+    const naColuna = visiveis.filter(c => c.columnId === col.id);
+    const lista = (typeof ordenarCartoesDaColuna === "function")
+      ? ordenarCartoesDaColuna(col.id, naColuna)
+      : naColuna.slice().sort((a,b) => (a.posicao || 0) - (b.posicao || 0));
     const soma = lista.reduce((s,c) => s + valorCartao(c), 0);
 
     const el = document.createElement("div");
@@ -33,6 +35,7 @@ function render(){
         <div class="col-head-main">
           <input class="col-title" value="${esc(col.name)}" data-col="${col.id}" aria-label="Nome da etapa">
           <div class="col-meta"><span>${lista.length}</span><span>·</span><b>${moeda(soma)}</b></div>
+          ${typeof htmlOrdemColuna === "function" ? htmlOrdemColuna(col.id) : ""}
         </div>
         <div class="col-acts">
           <button data-act="left" data-col="${col.id}" title="Mover etapa para a esquerda" ${idx===0?'style="visibility:hidden"':""}>${icon("arrowl",14,2.2)}</button>
@@ -78,6 +81,7 @@ function render(){
   board.appendChild(add);
 
   ligarEventosBoard();
+  if(typeof ligarOrdemColunas === "function") ligarOrdemColunas();
   atualizarContadoresAgenda();
   if(typeof renderFiltrosBoard === "function") renderFiltrosBoard();
   if(typeof renderMenuFunis === "function") renderMenuFunis();
@@ -152,6 +156,13 @@ function soltarCartao(colId, wrap){
   card.atualizadoEm = new Date().toISOString();
 
   salvar(); render();
+
+  // a etapa está ordenada por outro critério: a ordem manual fica guardada,
+  // mas não aparece enquanto a ordenação estiver ligada
+  if(typeof ordemDaColuna === "function" && ordemDaColuna(colId).length){
+    toast("Esta etapa está ordenada por " + resumoOrdem(colId) +
+          ". A posição manual foi guardada e volta ao limpar a ordenação.");
+  }
 }
 
 /** O valor que aparece no funil é o do pedido atual do cliente. */

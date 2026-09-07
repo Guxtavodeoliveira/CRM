@@ -108,12 +108,14 @@ function tirarSegmentoDoCartao(cardId, segId){
    ========================================================= */
 let segPopCard = null;
 let segPopSujo = false;      // mexeu em algo: ao fechar, redesenha o quadro
+let segPopAberto = 0;        // instante em que abriu (ver o fechar por rolagem)
 
 function abrirSeletorSegmentos(cardId, botao){
   const card = (dados.cards || []).find(c => c.id === cardId);
   if(!card) return;
   segPopCard = cardId;
   segPopSujo = false;
+  segPopAberto = Date.now();
 
   const pop = document.getElementById("segPop");
   if(!pop) return;
@@ -492,9 +494,13 @@ function ligarSegmentos(){
 
   /* o seletor do cartão fecha ao clicar fora, ao rolar ou ao sair da aba */
   document.addEventListener("click", e => {
+    if(!e.target.isConnected) return;      // alvo redesenhado: não é clique fora
     if(e.target.closest("#segPop") || e.target.closest("[data-seg-add]")) return;
     fecharSeletorSegmentos();
   });
-  document.addEventListener("scroll", fecharSeletorSegmentos, true);
+  document.addEventListener("scroll", () => {
+    if(Date.now() - segPopAberto < 500) return;   // a rolagem que o navegador faz ao abrir
+    fecharSeletorSegmentos();
+  }, true);
   window.addEventListener("blur", fecharSeletorSegmentos);
 }

@@ -20,8 +20,8 @@ O `relatorio-clientes.js` cobre o relatório de clientes: filtros de etapa,
 estado e cidade, a dependência da cidade em relação ao estado, as quatro
 ordenações, as colunas da folha e a exportação para Excel.
 
-As três suítes carregam também o `assets/js/segmentos.js` e o
-`assets/js/produtos.js` (a ordem dos arquivos
+As três suítes carregam também o `assets/js/segmentos.js`, o
+`assets/js/produtos.js` e o `assets/js/ordenacao.js` (a ordem dos arquivos
 no array `arquivos` de cada uma é a mesma do `index.html`). Os **segmentos do
 negócio** ainda não têm suíte própria em jsdom: eles foram verificados em
 navegador de verdade (cadastro por funil, chips no cartão, seletor com vários
@@ -34,6 +34,11 @@ de preço fora da faixa, a linha do produto na ficha em PDF e o relatório de
 produtos foram verificados em navegador. Ao mexer nessas partes, confira esses
 caminhos na mão — ou escreva a suíte, seguindo o modelo do
 `relatorio-clientes.js`.
+
+A **ordenação por etapa** (`ordenacao.js`) também foi verificada em navegador:
+cada critério isolado, os critérios somados na ordem em que são marcados, o
+sentido de cada um, a independência entre as colunas, o "último pedido" só onde
+há pedido, a volta para a ordem manual e a gravação no `localStorage`.
 
 O `campos-novos.js` cobre a mudança da ficha do cliente: campos removidos,
 inscrição estadual, responsável da empresa, dados bancários, etapa automática,

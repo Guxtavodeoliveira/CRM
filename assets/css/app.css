@@ -1571,3 +1571,57 @@ select.inp{appearance:none;}
   .pr-item, .pr-cab-col, .pr-form{ grid-template-columns:1fr 92px 92px 92px 62px; padding-left:20px; }
   .pr-form{ grid-template-columns:1fr; }
 }
+
+/* =========================================================
+   Ordenação por etapa do funil
+   ========================================================= */
+.col-ord-fila{ display:flex; align-items:center; gap:2px; margin:5px 0 0; padding:0 4px; }
+.col-ord{
+  display:inline-flex; align-items:center; gap:5px; max-width:100%;
+  border:none; background:transparent; color:var(--muted-2);
+  font-size:11px; font-weight:700; padding:3px 5px; border-radius:var(--r-sm);
+  line-height:1.2; text-align:left;
+}
+.col-ord span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.col-ord:hover{ background:#fff; color:var(--brand); }
+.col-ord.on{ background:var(--brand-50); color:var(--brand); }
+.col-ord-x{
+  border:none; background:transparent; color:var(--muted-2);
+  padding:3px; border-radius:50%; line-height:0; flex:0 0 auto;
+}
+.col-ord-x:hover{ background:var(--red-50); color:var(--red); }
+
+.ord-pop{ min-width:272px; max-width:300px; max-height:min(70vh,520px); overflow-y:auto; }
+.ord-ajuda{ font-size:11.5px; color:var(--muted-2); padding:0 10px 8px; line-height:1.45; }
+.ord-item{ border-radius:var(--r-sm); padding:2px 0; }
+.ord-item.on{ background:var(--brand-50); }
+.ord-op{
+  display:flex; align-items:flex-start; gap:8px;
+  padding:7px 10px; cursor:pointer; font-size:13px; color:var(--ink-2);
+}
+.ord-op input{ accent-color:var(--brand); width:15px; height:15px; flex:0 0 15px; margin-top:2px; }
+.ord-num{
+  flex:0 0 17px; height:17px; border-radius:50%; font-size:10px; font-weight:800;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--brand-700); color:var(--ouro);
+}
+.ord-item:not(.on) .ord-num{ background:transparent; }
+.ord-txt b{ display:block; font-size:13px; font-weight:700; }
+.ord-txt i{ display:block; font-size:11px; color:var(--muted); font-style:normal; margin-top:1px; line-height:1.4; }
+.ord-extra{ padding:0 10px 9px 50px; }
+.ord-extra .inp{ padding:5px 9px; font-size:12.5px; width:100%; background:#fff; }
+.ord-dir{ display:flex; gap:4px; }
+.ord-dir button{
+  flex:1; border:1px solid var(--line); background:#fff; color:var(--muted);
+  font-size:11.5px; font-weight:700; padding:5px 8px; border-radius:var(--r-sm);
+}
+.ord-dir button:hover{ border-color:var(--brand); color:var(--brand); }
+.ord-dir button.on{ background:var(--brand-700); color:var(--ouro); border-color:var(--brand-700); }
+.ord-resumo{ font-size:11.5px; color:var(--muted); padding:6px 10px; line-height:1.45; }
+.ord-resumo b{ color:var(--brand); }
+.ord-limpar{
+  width:100%; display:flex; align-items:center; gap:8px;
+  border:none; background:transparent; text-align:left;
+  padding:8px 10px; border-radius:var(--r-sm); font-size:13px; color:var(--ink-2);
+}
+.ord-limpar:hover{ background:var(--red-50); color:var(--red); }

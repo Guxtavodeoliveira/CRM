@@ -120,6 +120,8 @@ assets/js/segmentos.js     segmentos do negócio: cadastro por funil, chips no
                            cartão e filtro do quadro (segmento, estado, cidade)
 assets/js/produtos.js      tabela de preços do funil: linhas, sublinhas, produtos
                            com mínimo/médio/máximo e a anotação particular
+assets/js/ordenacao.js     ordenação por etapa do kanban (estado, cidade,
+                           segmento em destaque, cadastro, último pedido)
 assets/js/exportar-agendor.js  exporta .xlsx (histórico: era p/ importar no Agendor)
 assets/js/usuario.js       menu do representante e menu de funis
 assets/js/main.js          amarra tudo, atalhos de teclado, escolhe banco ou arquivo
@@ -138,7 +140,7 @@ publicar.bat               dois cliques: envia as alterações para o GitHub
 
 **Ordem dos scripts em `index.html` importa** (escopo global compartilhado):
 supabase → config → auth → xlsx → util → storage → banco → board → empresa →
-negocio → pedidos → relatorios → segmentos → produtos → agenda →
+negocio → pedidos → relatorios → segmentos → produtos → ordenacao → agenda →
 exportar-agendor → usuario → main.
 
 ---
@@ -241,6 +243,15 @@ Decisões do esquema, todas deliberadas:
 - **`legacy_id` em tudo**, com índice único parcial. Permite rodar a migração
   várias vezes sem duplicar (testado com 3 execuções seguidas).
 - **Índice `ix_pedido_atual`**: `unique (negocio_id) where atual`.
+- **Ordenação da etapa é preferência de tela, não dado.** Fica no
+  `localStorage`, na chave `crmOrdemEtapas:<id do funil>`, como
+  `{ etapaId: [ {tipo, dir, segId} ] }` — a ordem do array é a ordem em que os
+  critérios foram marcados. Não vai para o banco de propósito: não é do
+  negócio, é de como o dono quer olhar. A `posicao` (ordem manual, arrastada)
+  continua sendo gravada e é sempre o desempate; limpando a ordenação, ela
+  reaparece. O critério "último pedido" só é oferecido em etapas que têm pedido
+  lançado — é isso que faz ele aparecer na *Cliente Comprador* sem depender do
+  nome da etapa, que o dono renomeia.
 - **Segmento é do funil, não global.** `segmentos` tem `funil_id`: cada
   representada tem a sua lista, com nome e cor. `negocio_segmentos` é a tabela
   de ligação (chave primária composta), então um negócio aceita nenhum, um ou
