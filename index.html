@@ -141,6 +141,12 @@
           </span>
           <span><b>Vendas e comissões</b><i>Por período, agrupado por cliente</i></span>
         </button>
+        <button data-rel="produtos">
+          <span class="mic">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 16l9 5 9-5"/></svg>
+          </span>
+          <span><b>Produtos</b><i>Tabela de preços e o que já foi vendido</i></span>
+        </button>
         <button data-rel="clientes">
           <span class="mic">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -153,6 +159,10 @@
     <button class="btn" id="segBtn" title="Cadastrar os segmentos deste funil">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4L11 3.8V3H4v7h.8l9.6 9.6a2 2 0 0 0 2.8 0l3.4-3.4a2 2 0 0 0 0-2.8z"/><circle cx="7.5" cy="6.5" r="1.2"/></svg>
       Segmentos
+    </button>
+    <button class="btn" id="prodBtn" title="Tabela de preços deste funil">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 16l9 5 9-5"/></svg>
+      Produtos
     </button>
     <button class="btn" id="importBtn">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
@@ -587,7 +597,6 @@
         <h3>Itens do pedido</h3>
         <p class="sec-desc">Produto fechado, quantidade e preço. O subtotal e o total são calculados sozinhos.</p>
 
-        <datalist id="dl_pedprod"></datalist>
         <div id="pedItens"></div>
 
         <button class="btn btn-soft" id="pedAddItem" type="button" style="margin-top:4px">
@@ -614,6 +623,53 @@
     <div class="modal-foot">
       <button class="btn" id="pedCancelar" type="button">Cancelar</button>
       <button class="btn btn-primary" id="pedSalvar" type="button">Salvar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: PRODUTOS E PREÇOS ==================== -->
+<div class="overlay" id="prodOverlay">
+  <div class="modal" style="max-width:920px" role="dialog" aria-modal="true" aria-labelledby="prodTitulo">
+    <div class="modal-head">
+      <div class="avatar-sq">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 16l9 5 9-5"/></svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <h2 id="prodTitulo">Produtos e preços</h2>
+        <div class="sub" id="prodFunil">Valem só para este funil.</div>
+      </div>
+      <button class="icon-btn lg" id="prodFechar" aria-label="Fechar">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="pr-busca" style="padding-top:16px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+        <input class="inp" id="prodBusca" type="search" placeholder="Buscar produto, linha ou sublinha" autocomplete="off">
+      </div>
+
+      <div class="pr-cab-col">
+        <span>Produto</span>
+        <span class="lb-min">Mínimo</span>
+        <span class="lb-med">Médio</span>
+        <span class="lb-max">Máximo</span>
+        <span></span>
+      </div>
+
+      <div id="prodArvore"></div>
+
+      <div class="pr-rodape">
+        <button class="btn btn-soft" id="prodAddLinha" type="button">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Nova linha
+        </button>
+        <span class="hint" style="margin-left:auto">Os três preços são <b>por unidade</b> do que você vende (a bobina, o galão, o pacote).</span>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn btn-primary" id="prodPronto" type="button">Pronto</button>
     </div>
   </div>
 </div>
@@ -711,6 +767,7 @@
 <script src="assets/js/pedidos.js"></script>
 <script src="assets/js/relatorios.js"></script>
 <script src="assets/js/segmentos.js"></script>
+<script src="assets/js/produtos.js"></script>
 <script src="assets/js/agenda.js"></script>
 <script src="assets/js/exportar-agendor.js"></script>
 <script src="assets/js/banco.js"></script>

@@ -27,18 +27,18 @@ Assim os arquivos são trocados e o `.git` continua no lugar.
 
 ## PRIMEIRO: rode o SQL novo no Supabase
 
-Esta versão tem **duas tabelas novas** no banco. Antes de publicar, faça isto
-uma vez (leva 30 segundos):
+Esta versão tem **duas tabelas novas** no banco (as dos produtos). Antes de
+publicar, faça isto uma vez (leva 30 segundos):
 
 1. Entre em https://supabase.com e abra o seu projeto.
 2. Menu da esquerda → **SQL Editor** → **New query**.
-3. Abra o arquivo **`banco/atualizar-segmentos.sql`** (Bloco de Notas serve),
+3. Abra o arquivo **`banco/atualizar-produtos.sql`** (Bloco de Notas serve),
    copie tudo e cole na janela.
 4. Clique em **Run**. Tem que aparecer *Success*.
 
-Pode rodar de novo sem medo: nada é apagado. Se você publicar antes de rodar,
-o CRM continua funcionando normalmente — só avisa que os segmentos ainda não
-estão indo para a nuvem.
+Pode rodar de novo sem medo: nada é apagado, e os pedidos que você já lançou
+continuam iguais. Se publicar antes de rodar, o CRM continua funcionando
+normalmente — só avisa que os produtos ainda não estão indo para a nuvem.
 
 ---
 
@@ -55,45 +55,67 @@ antiga que ele guarda em cache.
 
 ## O que mudou nesta versão
 
-**Segmentos do negócio.** Agora cada negócio pode receber um ou vários
-segmentos coloridos (por exemplo: Sublimação, Esporte, Confecção), e o funil
-ganhou um filtro.
+**Tabela de preços por funil.** Botão novo **Produtos**, na barra, ao lado de
+*Segmentos*. Ali você monta a sua lista de produtos em três níveis:
 
-**Cada funil tem a sua lista.** Os segmentos da PRICOREL não aparecem no funil
-da NST Print, e vice-versa.
+```
+Papel para sublimação          (linha)
+  └ Fast Dry                   (sublinha)
+      └ Bobina 90g 1,60m x 100m   mínimo · médio · máximo
+```
 
-**Botão *Segmentos*, na barra, ao lado de *Relatórios*.** Abre a janela onde
-você cadastra: escreve o nome, escolhe uma das **8 cores** e clica em
-*Adicionar segmento*. Na lista de baixo dá para **editar** (lápis) ou
-**excluir** (lixeira). Ao excluir um segmento que está em uso, ele avisa
-quantos negócios usam; confirmando, o segmento só sai desses negócios —
-nenhum negócio é apagado.
+- **Três preços por produto**, sempre **por unidade do que você vende** (a
+  bobina, o galão, o pacote): **mínimo em vermelho**, **médio em marrom** e
+  **máximo em verde**. O que a unidade contém (100 metros, 1 litro) entra no
+  nome do produto.
+- **Anotação — só para você**: um campo de texto livre em cada produto (prazo
+  da fábrica, com quem falar, até onde dá para descer). Fica guardado ali e
+  **não aparece** no pedido, na ficha em PDF, no relatório nem na planilha.
+  Produto com anotação ganha um risquinho discreto do lado do nome.
+- O **lápis** é editar, a **lixeira** é excluir. Excluindo uma linha, os
+  produtos dela **não são apagados**: vão para "Sem linha", no topo, e você
+  reorganiza quando quiser.
+- A busca no topo do modal acha por produto, linha ou sublinha.
+- Cada funil tem a sua tabela: a da PRICOREL não aparece na NST Print.
 
-**No cartão do funil:**
+**Na hora do pedido.** O campo do produto agora tem duas formas de preencher:
 
-- quem não tem segmento mostra **+ adicionar segmento** no rodapé;
-- ao clicar, abre a listinha do funil e você **marca quantos quiser** (a
-  janelinha não fecha a cada clique);
-- quem já tem aparece com as etiquetas coloridas lado a lado, cada uma com um
-  **x** para tirar aquela, e um **+** ao lado para acrescentar outra;
-- negócio sem segmento continua funcionando igual — é opcional, e os negócios
-  antigos não mudaram em nada.
+- **digitando**, e a lista vai filtrando enquanto você escreve;
+- **clicando na setinha** do lado do campo, que abre a lista inteira já
+  separada por linha e sublinha, com a faixa de preço de cada um. No fim da
+  lista continuam os nomes que você já digitou à mão em pedidos antigos.
 
-**Filtro do funil** (barra nova, logo abaixo da busca):
+Escolhido o produto, aparece embaixo a faixa dele. **A única coisa que você
+digita é o preço que fechou.** Se esse preço ficar **abaixo do mínimo ou acima
+do máximo**, a linha fica vermelha na hora e, ao salvar, aparece um aviso
+dizendo qual item e quanto está fora. **É só um aviso**: confirmando, o pedido
+salva com o preço que você fechou — cada cliente tem a sua negociação.
 
-- **Segmento** — marque um ou vários. Marcando vários, aparece quem tiver
-  **pelo menos um** deles (não precisa ter todos).
-- **Estado** — só os estados onde você realmente tem cliente.
-- **Cidade** — só as cidades do estado escolhido; trocar de estado solta a
-  cidade, igual ao relatório de clientes.
-- Os três funcionam juntos. O filtro só **esconde cartões na tela**: nenhum
-  dado é alterado. *Limpar filtros* devolve tudo.
+**Pedido e ficha em PDF.** Na aba *Pedidos* e na ficha em PDF, cada item passou
+a mostrar embaixo do nome a **linha › sublinha** do produto. Na aba *Pedidos*
+(que é só sua) o item fechado fora da faixa ganha uma marca vermelha
+*abaixo do mín.* / *acima do máx.*; **na ficha em PDF isso não aparece** — ela
+continua limpa para mandar para a fábrica.
+
+**Relatório novo: Produtos.** Em *Relatórios* → *Produtos*. É a sua **tabela de
+preços em papel**: lista os produtos cadastrados naquele funil, agrupados por
+linha e sublinha, com mínimo, médio, máximo e a **margem** (quanto o máximo está
+acima do mínimo, em reais e em %). Nada de venda entra aqui — é o cadastro puro,
+para consultar e levar na visita. Dá para filtrar por linha, ordenar por nome ou
+por preço, imprimir em PDF e baixar em Excel.
+
+Nada do que já existia mudou: negócios, segmentos, clientes, agenda, comissões
+e os pedidos antigos continuam iguais. Quem preferir digitar o produto na mão,
+como sempre fez, continua podendo.
 
 ---
 
-## Ainda pendente do pacote anterior
+## Ainda pendente dos pacotes anteriores
 
-Se você ainda não rodou o **`banco/atualizar-campos.sql`** no Supabase, rode
-também: SQL Editor → New query → colar o conteúdo do arquivo → Run. Sem ele, a
-inscrição estadual e os dados bancários do cliente não são salvos na nuvem.
-São dois arquivos diferentes e um não substitui o outro.
+São arquivos diferentes e um não substitui o outro. Se você ainda não rodou
+algum deles, rode agora (SQL Editor → New query → colar → Run):
+
+- **`banco/atualizar-campos.sql`** — inscrição estadual e dados bancários do
+  cliente.
+- **`banco/atualizar-segmentos.sql`** — os segmentos coloridos do negócio.
+- **`banco/atualizar-produtos.sql`** — a tabela de preços desta versão.

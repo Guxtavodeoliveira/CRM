@@ -28,6 +28,7 @@ function ligarRelatorios(){
       menu.classList.remove("show");
       if(b.dataset.rel === "vendas") abrirRelVendas();
       if(b.dataset.rel === "clientes") abrirRelClientes();
+      if(b.dataset.rel === "produtos") abrirRelProdutos();
     };
   });
 
@@ -601,5 +602,232 @@ function exportarClientesXlsx(){
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Clientes");
   XLSX.writeFile(wb, "clientes.xlsx");
+  toast("Planilha gerada.");
+}
+
+
+/* =========================================================
+   Relatório de produtos
+   A lista dos produtos cadastrados NESTE funil, com os três
+   preços. É a tabela de preços em papel: serve para consultar
+   e para levar na visita, sem nada de venda misturado.
+   ========================================================= */
+
+let relProdLinha = "todas";
+let relProdOrdem = "linha";
+
+const ORDENS_PROD = {
+  linha: { label:"Linha e sublinha", fn:(a,b) =>
+    a.ordemGrupo - b.ordemGrupo || a.nome.localeCompare(b.nome, "pt-BR") },
+  nome:  { label:"Nome (A → Z)", fn:(a,b) => a.nome.localeCompare(b.nome, "pt-BR") },
+  maior: { label:"Preço máximo (maior primeiro)", fn:(a,b) =>
+    (Number(b.precoMax)||0) - (Number(a.precoMax)||0) },
+  menor: { label:"Preço mínimo (menor primeiro)", fn:(a,b) =>
+    (Number(a.precoMin)||0) - (Number(b.precoMin)||0) }
+};
+
+function abrirRelProdutos(){
+  if(relProdLinha !== "todas" && !linhasRaiz().some(l => l.id === relProdLinha)) relProdLinha = "todas";
+  renderRelProdutos();
+  document.getElementById("relOverlay").classList.add("show");
+}
+
+/** Os produtos do funil, já com o grupo (linha › sublinha) e a margem. */
+function produtosDoRelatorio(){
+  const lista = produtosEmOrdem().map((p,i) => {
+    const min = Number(p.precoMin) || 0, max = Number(p.precoMax) || 0;
+    return {
+      ...p,
+      grupo: [p.linha, p.sub].filter(Boolean).join(" › ") || "Sem linha",
+      ordemGrupo: i,
+      margem: (min && max) ? max - min : 0,
+      margemPct: (min && max) ? ((max - min) / min) * 100 : 0
+    };
+  });
+  const filtrada = relProdLinha === "todas"
+    ? lista
+    : lista.filter(p => p.linha === ((linhaPorId(relProdLinha) || {}).nome || ""));
+  return filtrada.slice().sort(ORDENS_PROD[relProdOrdem].fn);
+}
+
+function linhaProdutoTabela(p, comGrupo){
+  return `
+  <tr>
+    <td><b>${esc(p.nome)}</b></td>
+    ${comGrupo ? `<td>${esc(p.grupo)}</td>` : ""}
+    <td class="num pr-min">${Number(p.precoMin) ? moeda(p.precoMin) : "—"}</td>
+    <td class="num pr-med">${Number(p.precoMed) ? moeda(p.precoMed) : "—"}</td>
+    <td class="num pr-max">${Number(p.precoMax) ? moeda(p.precoMax) : "—"}</td>
+    <td class="num">${p.margem ? moeda(p.margem) + " <span class=\"muted\">(" + p.margemPct.toFixed(0) + "%)</span>" : "—"}</td>
+  </tr>`;
+}
+
+function cabecalhoTabelaProdutos(comGrupo){
+  return `
+  <thead>
+    <tr>
+      <th style="width:${comGrupo ? "34%" : "46%"}">Produto</th>
+      ${comGrupo ? `<th style="width:20%">Linha / Sublinha</th>` : ""}
+      <th class="num">Mínimo</th>
+      <th class="num">Médio</th>
+      <th class="num">Máximo</th>
+      <th class="num">Margem</th>
+    </tr>
+  </thead>`;
+}
+
+/** Ordenado por linha: um bloco por linha, com as sublinhas dentro. */
+function tabelaProdutosAgrupada(lista){
+  const grupos = [];
+  lista.forEach(p => {
+    const chave = p.linha || "Sem linha";
+    let g = grupos.find(x => x.nome === chave);
+    if(!g){ g = { nome:chave, subs:[] }; grupos.push(g); }
+    const nomeSub = p.sub || "";
+    let sg = g.subs.find(x => x.nome === nomeSub);
+    if(!sg){ sg = { nome:nomeSub, itens:[] }; g.subs.push(sg); }
+    sg.itens.push(p);
+  });
+
+  return grupos.map(g => {
+    const qtd = g.subs.reduce((s,x) => s + x.itens.length, 0);
+    return `
+    <div class="rel-grupo">
+      <div class="rel-grupo-head">
+        <div><b>${esc(g.nome)}</b></div>
+        <div class="rel-grupo-tot"><span>${qtd} produto(s)</span></div>
+      </div>
+      <table class="rel-tab">
+        ${cabecalhoTabelaProdutos(false)}
+        <tbody>
+          ${g.subs.map(sg => `
+            ${sg.nome ? `<tr class="rel-sublinha"><td colspan="5">${esc(sg.nome)}</td></tr>` : ""}
+            ${sg.itens.map(p => linhaProdutoTabela(p, false)).join("")}
+          `).join("")}
+        </tbody>
+      </table>
+    </div>`;
+  }).join("");
+}
+
+function renderRelProdutos(){
+  const lista = produtosDoRelatorio();
+  const semPreco = lista.filter(p => !Number(p.precoMin) && !Number(p.precoMax)).length;
+  const linhas = new Set(lista.map(p => p.linha).filter(Boolean)).size;
+  const agrupado = relProdOrdem === "linha";
+  const filtroTxt = relProdLinha === "todas"
+    ? "Todas as linhas"
+    : ((linhaPorId(relProdLinha) || {}).nome || "");
+
+  document.getElementById("relContent").innerHTML = `
+    <div class="modal-head">
+      <div class="avatar-sq">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 16l9 5 9-5"/></svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <h2>Produtos</h2>
+        <div class="sub">${esc(filtroTxt)} · ${lista.length} produto(s) cadastrado(s)</div>
+      </div>
+      <button class="icon-btn lg" id="relFechar" aria-label="Fechar">${icon("x",17,2.2)}</button>
+    </div>
+
+    <div class="rel-filtros">
+      <div class="rel-sel">
+        <label>Linha
+          <select class="inp" id="fProdLinha">
+            <option value="todas">Todas</option>
+            ${linhasRaiz().map(l =>
+              `<option value="${esc(l.id)}" ${l.id === relProdLinha ? "selected" : ""}>${esc(l.nome)}</option>`).join("")}
+          </select>
+        </label>
+        <label>Ordenar por
+          <select class="inp" id="fProdOrdem">
+            ${Object.entries(ORDENS_PROD).map(([k,v]) =>
+              `<option value="${k}" ${k === relProdOrdem ? "selected" : ""}>${esc(v.label)}</option>`).join("")}
+          </select>
+        </label>
+      </div>
+      <button class="btn btn-soft nao-imprime" id="fProdLimpar" type="button">Limpar filtros</button>
+    </div>
+
+    <div class="modal-body" id="relBody">
+      <div id="relFolha" class="folha">
+        <div class="folha-topo">
+          <img src="img/logo.svg" alt="Gustavo de Oliveira" class="folha-logo">
+          <div class="folha-info">
+            <h3>Tabela de preços — produtos</h3>
+            <div>Filtros: <b>${esc(filtroTxt)}</b></div>
+            <div>${lista.length} produto(s) · Ordenado por: ${esc(ORDENS_PROD[relProdOrdem].label)} · Funil: ${esc(dados.boardName || "")}</div>
+          </div>
+        </div>
+
+        <div class="rel-cards">
+          <div class="destaque"><span>Produtos cadastrados</span><b>${lista.length}</b></div>
+          <div><span>Linhas</span><b>${linhas}</b></div>
+          <div><span>Sem preço cadastrado</span><b>${semPreco}</b></div>
+        </div>
+
+        ${semPreco ? `<div class="rel-aviso">${semPreco} produto(s) sem preço mínimo e máximo — eles aparecem com traço e nunca geram aviso na hora do pedido.</div>` : ""}
+
+        ${lista.length
+          ? (agrupado ? tabelaProdutosAgrupada(lista) : `
+            <table class="rel-tab solta">
+              ${cabecalhoTabelaProdutos(true)}
+              <tbody>${lista.map(p => linhaProdutoTabela(p, true)).join("")}</tbody>
+            </table>`)
+          : `<div class="empty-state">Nenhum produto cadastrado neste funil. Use o botão <b>Produtos</b>, na barra de cima, para montar a sua tabela de preços.</div>`}
+
+        <div class="rel-legenda">
+          Preços <b>por unidade</b> · <span class="pr-min">mínimo</span> ·
+          <span class="pr-med">médio</span> · <span class="pr-max">máximo</span> ·
+          margem = quanto o máximo está acima do mínimo.
+        </div>
+
+        <div class="rel-rodape">
+          Emitido em ${esc(fmtLongo(new Date().toISOString()))} · ${esc(dados.boardName || "")}
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <span class="left muted" style="font-size:12.5px">Em “Imprimir”, escolha <b>Salvar como PDF</b> no destino.</span>
+      <button class="btn" id="relProdXlsx">${icon("save",14,2)} Excel</button>
+      <button class="btn btn-primary" id="relProdPrint">${icon("doc",14,2)} Imprimir / Salvar PDF</button>
+    </div>
+  `;
+  ligarRelProdutos();
+}
+
+function ligarRelProdutos(){
+  const box = document.getElementById("relContent");
+  box.querySelector("#relFechar").onclick = fecharRelatorio;
+  box.querySelector("#fProdLinha").onchange = e => { relProdLinha = e.target.value; renderRelProdutos(); };
+  box.querySelector("#fProdOrdem").onchange = e => { relProdOrdem = e.target.value; renderRelProdutos(); };
+  box.querySelector("#fProdLimpar").onclick = () => {
+    relProdLinha = "todas"; relProdOrdem = "linha";
+    renderRelProdutos();
+  };
+  box.querySelector("#relProdPrint").onclick = () => imprimirFolha("relOverlay");
+  box.querySelector("#relProdXlsx").onclick = exportarProdutosXlsx;
+}
+
+function exportarProdutosXlsx(){
+  const lista = produtosDoRelatorio();
+  if(!lista.length){ toast("Nenhum produto cadastrado neste funil.", "err"); return; }
+
+  const cab = ["Produto","Linha","Sublinha","Preço mínimo","Preço médio","Preço máximo","Margem (R$)","Margem (%)"];
+  const corpo = lista.map(p => [
+    p.nome, p.linha || "", p.sub || "",
+    Number(p.precoMin) || "", Number(p.precoMed) || "", Number(p.precoMax) || "",
+    p.margem || "", p.margemPct ? Number(p.margemPct.toFixed(1)) : ""
+  ]);
+
+  const ws = montarAba(cab, corpo, {
+    z: { 3:"#,##0.00", 4:"#,##0.00", 5:"#,##0.00", 6:"#,##0.00", 7:'0.0"%"' },
+    largura: [44,24,24,14,14,14,14,12]
+  });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Produtos");
+  XLSX.writeFile(wb, "produtos.xlsx");
   toast("Planilha gerada.");
 }

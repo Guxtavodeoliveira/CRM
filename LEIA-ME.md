@@ -99,6 +99,28 @@ confirmar, ele só sai desses negócios — nada mais é apagado.
 - Os três filtros valem juntos, e o filtro só esconde cartões na tela — nenhum
   dado é alterado. *Limpar filtros* volta tudo.
 
+**Produtos** (botão na barra, ao lado de *Segmentos*)
+A sua tabela de preços, uma para cada funil. Você monta em três níveis: **linha**
+(Papel para sublimação), **sublinha** (Fast Dry, High Tack) e **produto**. Cada
+produto tem **preço mínimo (vermelho)**, **médio (marrom)** e **máximo (verde)**,
+sempre **por unidade do que você vende** — a bobina, o galão, o pacote; o que a
+unidade contém (100 metros, 1 litro) entra no nome do produto.
+
+- O **lápis** edita o produto; ali dentro tem a **Anotação — só para você**:
+  texto livre que fica guardado e **não aparece** no pedido, na ficha em PDF,
+  no relatório nem na planilha.
+- A **lixeira** exclui. Excluindo uma linha, os produtos dela não somem: ficam
+  em *Sem linha*, no topo, para você reorganizar.
+- A busca acha por produto, linha ou sublinha.
+
+**Produto no pedido**
+No item do pedido, o campo do produto filtra enquanto você digita, e a setinha
+do lado abre a lista inteira, separada por linha e sublinha, com a faixa de
+preço de cada um. Abaixo do campo aparece a faixa do produto escolhido. Você só
+digita o preço que fechou; se ele ficar fora da faixa, o CRM avisa ao salvar e
+você confirma — **o aviso nunca bloqueia**, porque cada cliente tem a sua
+negociação.
+
 **Relatórios** (botão na barra)
 Abre um menu com os relatórios disponíveis.
 
@@ -108,6 +130,10 @@ Abre um menu com os relatórios disponíveis.
   pagamento, valor da venda, o percentual e o valor da comissão — com subtotal por
   cliente e o total geral. Dá para desmarcar *Agrupar por cliente* e ver como lista
   corrida.
+- **Produtos**: a sua tabela de preços do funil, agrupada por linha e sublinha,
+  com mínimo, médio, máximo e a margem entre eles. É só o que está cadastrado —
+  não entra nada de venda. Filtra por linha, ordena por nome ou por preço, e sai
+  em PDF ou Excel.
 - **Imprimir / Salvar PDF**: abre a impressão do navegador já com a folha formatada
   em A4, com a logo no cabeçalho. No destino, escolha *Salvar como PDF*.
 - **Excel**: baixa a mesma informação em planilha, com totais no rodapé.
@@ -190,6 +216,7 @@ assets/js/agenda.js   painel Hoje / Amanhã
 assets/js/pedidos.js  aba Pedidos: pedido atual, histórico e itens
 assets/js/relatorios.js  relatórios, impressão em PDF e Excel
 assets/js/segmentos.js   segmentos do negócio, etiquetas no cartão e filtro
+assets/js/produtos.js    tabela de preços do funil (linhas, sublinhas, produtos)
 img/                  logo, favicon e ícones
 banco/                schema.sql, as migrações .sql e migrar.js (Supabase)
 assets/js/main.js     inicialização e atalhos

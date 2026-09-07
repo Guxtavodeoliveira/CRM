@@ -73,6 +73,43 @@ async function lerSegmentos(funilId){
 }
 
 /* =========================================================
+   PRODUTOS — tabelas novas (banco/atualizar-produtos.sql).
+   Mesma ideia dos segmentos: sem elas o sistema roda igual,
+   só não leva a tabela de preços para a nuvem.
+   ========================================================= */
+let temProdutos = true;
+let avisouProdutos = false;
+
+function faltaTabelaProdutos(e){
+  const msg = ((e && e.message) || "") + " " + ((e && e.details) || "") + " " + ((e && e.hint) || "");
+  return /linhas_produto|produtos/i.test(msg)
+      || (e && (e.code === "42P01" || e.code === "PGRST205" || e.code === "PGRST204"));
+}
+
+function avisarProdutos(){
+  if(avisouProdutos) return;
+  avisouProdutos = true;
+  toast("Os produtos ainda não vão para a nuvem: rode o arquivo banco/atualizar-produtos.sql no Supabase.", "err");
+}
+
+/** Lê as linhas e os produtos do funil. Banco antigo: devolve vazio. */
+async function lerProdutos(funilId){
+  try{
+    const [l, p] = await Promise.all([
+      sb.from("linhas_produto").select("*").eq("funil_id", funilId).order("posicao"),
+      sb.from("produtos").select("*").eq("funil_id", funilId).order("posicao")
+    ]);
+    if(l.error) throw l.error;
+    if(p.error) throw p.error;
+    return { linhas: l.data || [], produtos: p.data || [] };
+  }catch(e){
+    temProdutos = false;
+    console.warn("produtos ainda não existem no banco:", (e && e.message) || e);
+    return { linhas: [], produtos: [] };
+  }
+}
+
+/* =========================================================
    CARREGAR
    ========================================================= */
 async function carregarDoBanco(){
@@ -146,6 +183,8 @@ async function carregarDoBanco(){
     if(segIds.has(v.segmento_id)) (segsPorNeg[v.negocio_id] ||= []).push(v.segmento_id);
   });
 
+  const prod = await lerProdutos(funilAtual.id);
+
   const perfil = await carregarPerfil();
   const nomeUsuario = (perfil && perfil.nome) || user.email.split("@")[0];
   if(!listas.responsaveis.length) listas.responsaveis = [nomeUsuario];
@@ -159,6 +198,17 @@ async function carregarDoBanco(){
     columns: (etapas.data||[]).map(e => ({ id:e.id, name:e.nome })),
     segmentos: seg.segmentos.map(s => ({
       id:s.id, nome:s.nome || "", cor:corDeSegmento(s.cor), posicao:Number(s.posicao) || 0
+    })),
+    linhasProduto: prod.linhas.map(l => ({
+      id:l.id, paiId:l.pai_id || null, nome:l.nome || "", posicao:Number(l.posicao) || 0,
+      criadoEm:l.criado_em
+    })),
+    produtos: prod.produtos.map(p => ({
+      id:p.id, linhaId:p.linha_id || null, nome:p.nome || "",
+      precoMin:Number(p.preco_min) || 0, precoMed:Number(p.preco_med) || 0,
+      precoMax:Number(p.preco_max) || 0, observacao:p.observacao || "",
+      posicao:Number(p.posicao) || 0,
+      criadoEm:p.criado_em, atualizadoEm:p.atualizado_em
     })),
     cards: (negocios.data||[]).map(n => {
       const c = cliPorId.get(n.cliente_id) || {};
@@ -475,6 +525,9 @@ async function sincronizar(){
     /* segmentos: só aqui, depois que os negócios novos já existem no banco
        (o vínculo aponta para o negócio, então o pai tem que vir antes) */
     await gravarSegmentos(antes, agora, own, fid);
+
+    /* tabela de preços do funil (linhas, sublinhas e produtos) */
+    await gravarProdutos(antes, agora, own, fid);
     // negócios e clientes excluídos: por último, para não derrubar filhos antes
     if(dNeg.apagar.length){
       const { error } = await sb.from("negocios").delete().in("id", dNeg.apagar);
@@ -543,6 +596,59 @@ async function gravarSegmentos(antes, agora, own, fid){
     }
   }catch(e){
     if(faltaTabelaSegmentos(e)){ temSegmentos = false; avisarSegmentos(); return; }
+    throw e;
+  }
+}
+
+/**
+ * Grava a tabela de preços: linhas (e sublinhas) primeiro, porque o
+ * produto aponta para elas; as exclusões ficam para o fim.
+ */
+async function gravarProdutos(antes, agora, own, fid){
+  const dLin = diferenca(antes.linhasProduto || [], agora.linhasProduto || [], l => ({
+    id: l.id, owner_id: own, funil_id: fid, pai_id: l.paiId || null,
+    nome: l.nome || "", posicao: Number(l.posicao) || 0
+  }));
+  const dPro = diferenca(antes.produtos || [], agora.produtos || [], p => ({
+    id: p.id, owner_id: own, funil_id: fid, linha_id: p.linhaId || null,
+    nome: p.nome || "",
+    preco_min: Number(p.precoMin) || 0,
+    preco_med: Number(p.precoMed) || 0,
+    preco_max: Number(p.precoMax) || 0,
+    observacao: p.observacao || "",
+    posicao: Number(p.posicao) || 0,
+    atualizado_em: new Date().toISOString()
+  }));
+
+  const mexeu = dLin.gravar.length || dLin.apagar.length || dPro.gravar.length || dPro.apagar.length;
+  if(!mexeu) return;
+  if(!temProdutos){ avisarProdutos(); return; }
+
+  try{
+    // pai antes do filho: a linha tem que existir para o produto apontar
+    if(dLin.gravar.length){
+      const semPai = dLin.gravar.filter(l => !l.pai_id);
+      const comPai = dLin.gravar.filter(l => l.pai_id);
+      for(const lote of [semPai, comPai]){
+        if(!lote.length) continue;
+        const { error } = await sb.from("linhas_produto").upsert(lote);
+        if(error) throw error;
+      }
+    }
+    if(dPro.gravar.length){
+      const { error } = await sb.from("produtos").upsert(dPro.gravar);
+      if(error) throw error;
+    }
+    if(dPro.apagar.length){
+      const { error } = await sb.from("produtos").delete().in("id", dPro.apagar);
+      if(error) throw error;
+    }
+    if(dLin.apagar.length){
+      const { error } = await sb.from("linhas_produto").delete().in("id", dLin.apagar);
+      if(error) throw error;
+    }
+  }catch(e){
+    if(faltaTabelaProdutos(e)){ temProdutos = false; avisarProdutos(); return; }
     throw e;
   }
 }

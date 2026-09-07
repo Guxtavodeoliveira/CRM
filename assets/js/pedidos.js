@@ -130,13 +130,20 @@ function pedidoCard(p, ehAtual){
           <tr><th>Produto</th><th class="num">Qtd</th><th class="num">Preço unit.</th><th class="num">Subtotal</th></tr>
         </thead>
         <tbody>
-          ${itens.map(it => `
+          ${itens.map(it => {
+            const prod = (typeof produtoPorNome === "function") ? produtoPorNome(it.produto) : null;
+            const cam = prod ? caminhoProduto(prod) : "";
+            const fora = prod ? foraDaFaixa(prod, it.preco) : "";
+            return `
             <tr>
-              <td>${esc(it.produto || "—")}</td>
+              <td>${esc(it.produto || "—")}${cam ? `<span class="it-cam">${esc(cam)}</span>` : ""}</td>
               <td class="num">${(Number(it.quantidade)||0).toLocaleString("pt-BR")}</td>
-              <td class="num">${moeda(it.preco)}</td>
+              <td class="num">${moeda(it.preco)}${fora
+                ? `<span class="it-fora" title="Faixa cadastrada: ${esc(textoSimplesFaixa(prod))}">${fora === "abaixo" ? "abaixo do mín." : "acima do máx."}</span>`
+                : ""}</td>
               <td class="num forte">${moeda(subtotalItem(it))}</td>
-            </tr>`).join("")}
+            </tr>`;
+          }).join("")}
         </tbody>
         <tfoot>
           <tr><td colspan="3" class="num">Total do pedido</td><td class="num total">${moeda(totalPedido(p))}</td></tr>
@@ -318,11 +325,6 @@ function abrirPedidoModal(card, pedidoId){
     ? JSON.parse(JSON.stringify(p.itens))
     : [{ id: uid(), produto:"", quantidade:1, preco:0 }];
 
-  // sugestões de produto: os do cliente + os já usados na conta
-  const sugestoes = [...new Set([...(card.produtos || []), ...(dados.listas.produtos || [])])];
-  document.getElementById("dl_pedprod").innerHTML =
-    sugestoes.map(v => `<option value="${esc(v)}"></option>`).join("");
-
   renderItensPedido();
   document.getElementById("pedidoOverlay").classList.add("show");
   setTimeout(() => {
@@ -340,11 +342,19 @@ function fecharPedidoModal(){
 function renderItensPedido(){
   const box = document.getElementById("pedItens");
   box.innerHTML = pedidoItensTmp.map((it,i) => `
+    <div class="it-bloco">
     <div class="it-linha">
-      <div class="field">
+      <div class="field it-prod">
         ${i === 0 ? "<label>Produto</label>" : ""}
-        <input class="inp" list="dl_pedprod" data-it="${i}" data-k="produto"
-               value="${esc(it.produto)}" placeholder="Nome do produto fechado">
+        <div class="prod-campo">
+          <input class="inp" data-it="${i}" data-k="produto" autocomplete="off"
+                 value="${esc(it.produto)}" placeholder="Digite ou escolha na lista">
+          <button class="prod-lupa" type="button" data-abrelista="${i}" tabindex="-1"
+                  title="Escolher da tabela de preços" aria-label="Escolher da tabela de preços">
+            ${icon("dots",14,2.4)}
+          </button>
+        </div>
+        <div class="prod-lista" data-lista="${i}"></div>
       </div>
       <div class="field it-qtd">
         ${i === 0 ? "<label>Qtd</label>" : ""}
@@ -362,7 +372,11 @@ function renderItensPedido(){
       </div>
       <button class="icon-btn it-rm" data-rmit="${i}" title="Remover item"
         ${pedidoItensTmp.length === 1 ? "disabled style=\"opacity:.3\"" : ""}>${icon("trash",14,2)}</button>
+    </div>
+    <div class="faixa-dica" data-faixa="${i}"></div>
     </div>`).join("");
+
+  ligarListasProduto();
 
   // digitação nos campos
   box.querySelectorAll("[data-it]").forEach(inp => {
@@ -371,6 +385,8 @@ function renderItensPedido(){
       pedidoItensTmp[i][k] = k === "produto" ? inp.value
         : k === "quantidade" ? (Number(inp.value) || 0)
         : parseMoeda(inp.value);
+      if(k === "produto") abrirListaProduto(i, inp.value);
+      atualizarFaixaItem(i);
       atualizarTotais();
     };
     if(k === "preco"){
@@ -378,12 +394,23 @@ function renderItensPedido(){
         const v = parseMoeda(inp.value);
         pedidoItensTmp[i].preco = v;
         inp.value = v ? moeda(v) : "";
+        atualizarFaixaItem(i);
         atualizarTotais();
       };
     }
+    // a lista não abre sozinha ao entrar no campo: abre ao digitar
+    // ou ao clicar na setinha, para não tapar o modal na hora que abre
     // Enter no último campo cria a próxima linha
     inp.onkeydown = e => {
-      if(e.key === "Enter"){ e.preventDefault(); addItemPedido(); }
+      if(e.key === "Escape" && k === "produto"){ fecharListasProduto(); return; }
+      if(e.key !== "Enter") return;
+      e.preventDefault();
+      // no campo do produto, Enter pega o primeiro da lista aberta
+      if(k === "produto"){
+        const lista = document.querySelector(`[data-lista="${i}"].show .prod-op`);
+        if(lista){ lista.click(); return; }
+      }
+      addItemPedido();
     };
   });
 
@@ -400,6 +427,7 @@ function renderItensPedido(){
 
 function atualizarTotais(){
   pedidoItensTmp.forEach((it,i) => {
+    atualizarFaixaItem(i, true);
     const el = document.querySelector(`[data-sub="${i}"]`);
     if(el) el.textContent = moeda(subtotalItem(it));
   });
@@ -414,6 +442,130 @@ function atualizarTotais(){
     `${pedidoItensTmp.length} ${pedidoItensTmp.length === 1 ? "item" : "itens"} · ${pecas.toLocaleString("pt-BR")} un.`;
 }
 
+/* =========================================================
+   Produto do item: lista da tabela de preços do funil
+   (digitando filtra; pela setinha abre tudo, separado por linha)
+   ========================================================= */
+function catalogoDoPedido(filtro){
+  const f = chaveTexto(filtro);
+  const doFunil = (typeof produtosEmOrdem === "function") ? produtosEmOrdem() : [];
+  const achados = doFunil.filter(p =>
+    !f || chaveTexto(p.nome + " " + (p.linha || "") + " " + (p.sub || "")).includes(f));
+
+  // nomes que você já digitou à mão em pedidos anteriores
+  const card = (typeof cardAtual === "function") ? cardAtual() : null;
+  const jaNoFunil = new Set(doFunil.map(p => chaveTexto(p.nome)));
+  const antigos = [...new Set([...((card && card.produtos) || []), ...((dados.listas && dados.listas.produtos) || [])])]
+    .filter(v => v && !jaNoFunil.has(chaveTexto(v)) && (!f || chaveTexto(v).includes(f)));
+
+  return { achados, antigos };
+}
+
+function abrirListaProduto(i, filtro){
+  const box = document.querySelector(`[data-lista="${i}"]`);
+  if(!box) return;
+  const { achados, antigos } = catalogoDoPedido(filtro);
+
+  if(!achados.length && !antigos.length){
+    box.innerHTML = `<div class="prod-nada">Nada com esse nome na sua tabela de preços — pode digitar do jeito que quiser, o pedido aceita.</div>`;
+  }else{
+    let html = "", linhaAtual = null, subAtual = null;
+    achados.forEach(p => {
+      const nomeLinha = p.linha || "Sem linha";
+      if(nomeLinha !== linhaAtual){
+        html += `<div class="prod-grupo">${esc(nomeLinha)}</div>`;
+        linhaAtual = nomeLinha; subAtual = null;
+      }
+      if(p.sub && p.sub !== subAtual){
+        html += `<div class="prod-grupo sub">${esc(p.sub)}</div>`;
+        subAtual = p.sub;
+      }
+      html += `<button class="prod-op" type="button" data-escolher="${i}" data-nome="${esc(p.nome)}">
+        <span>${esc(p.nome)}</span>
+        <span class="faixa">${textoFaixa(p) || "sem preço"}</span>
+      </button>`;
+    });
+    if(antigos.length){
+      html += `<div class="prod-grupo">Já usados antes</div>`;
+      html += antigos.map(v => `<button class="prod-op" type="button" data-escolher="${i}" data-nome="${esc(v)}">
+        <span>${esc(v)}</span></button>`).join("");
+    }
+    box.innerHTML = html;
+  }
+
+  fecharListasProduto(i);
+  box.classList.add("show");
+  box.querySelectorAll("[data-escolher]").forEach(b => {
+    b.onclick = () => escolherProdutoItem(Number(b.dataset.escolher), b.dataset.nome);
+  });
+}
+
+function fecharListasProduto(menosEste){
+  document.querySelectorAll(".prod-lista.show").forEach(el => {
+    if(menosEste != null && el.dataset.lista === String(menosEste)) return;
+    el.classList.remove("show");
+  });
+}
+
+function escolherProdutoItem(i, nome){
+  if(!pedidoItensTmp[i]) return;
+  pedidoItensTmp[i].produto = nome;
+  const inp = document.querySelector(`[data-it="${i}"][data-k="produto"]`);
+  if(inp) inp.value = nome;
+  fecharListasProduto();
+  atualizarFaixaItem(i);
+  const p = document.querySelector(`[data-it="${i}"][data-k="preco"]`);
+  if(p){ p.focus(); p.select(); }
+}
+
+function ligarListasProduto(){
+  document.querySelectorAll("[data-abrelista]").forEach(b => {
+    b.onclick = e => {
+      e.stopPropagation();
+      const i = Number(b.dataset.abrelista);
+      const box = document.querySelector(`[data-lista="${i}"]`);
+      const aberta = box && box.classList.contains("show");
+      fecharListasProduto();
+      if(!aberta) abrirListaProduto(i, "");     // pela setinha, mostra tudo
+    };
+  });
+}
+
+/** Linha de apoio embaixo do item: a faixa do produto, ou o aviso. */
+function atualizarFaixaItem(i){
+  const el = document.querySelector(`[data-faixa="${i}"]`);
+  if(!el) return;
+  const it = pedidoItensTmp[i] || {};
+  const prod = (typeof produtoPorNome === "function") ? produtoPorNome(it.produto) : null;
+  const campoPreco = document.querySelector(`[data-it="${i}"][data-k="preco"]`);
+
+  if(!prod){
+    el.className = "faixa-dica";
+    el.innerHTML = "";
+    if(campoPreco) campoPreco.classList.remove("alerta");
+    return;
+  }
+
+  const fora = foraDaFaixa(prod, it.preco);
+  el.className = "faixa-dica" + (fora ? " fora" : "");
+  el.innerHTML = fora
+    ? `${icon("clock",11,2.4)} <b>${fora === "abaixo" ? "Abaixo do mínimo" : "Acima do máximo"}</b> — a faixa deste produto é
+       ${textoFaixa(prod)} por unidade. Você ainda pode salvar assim.`
+    : `Faixa deste produto: ${textoFaixa(prod)} <span class="por-un">por unidade</span>${
+        prod.precoMin || prod.precoMax ? "" : " (sem preço cadastrado)"}`;
+  if(campoPreco) campoPreco.classList.toggle("alerta", !!fora);
+}
+
+/** Itens do pedido que ficaram fora da faixa cadastrada. */
+function itensForaDaFaixa(itens){
+  if(typeof produtoPorNome !== "function") return [];
+  return itens.map(it => {
+    const prod = produtoPorNome(it.produto);
+    const fora = prod ? foraDaFaixa(prod, it.preco) : "";
+    return fora ? { it, prod, fora } : null;
+  }).filter(Boolean);
+}
+
 function addItemPedido(){
   pedidoItensTmp.push({ id: uid(), produto:"", quantidade:1, preco:0 });
   renderItensPedido();
@@ -421,7 +573,7 @@ function addItemPedido(){
   if(inputs.length) inputs[inputs.length-1].focus();
 }
 
-function salvarPedido(){
+async function salvarPedido(){
   const card = cardAtual();
   if(!card) return;
 
@@ -436,6 +588,20 @@ function salvarPedido(){
 
   if(!itens.length){ toast("Adicione pelo menos um item ao pedido.", "err"); return; }
   if(itens.some(it => !it.produto)){ toast("Todo item precisa do nome do produto.", "err"); return; }
+
+  /* aviso de preço fora da faixa — avisa e deixa salvar mesmo assim,
+     porque cada cliente tem a sua negociação */
+  const fora = itensForaDaFaixa(itens);
+  if(fora.length){
+    const linhas = fora.map(x =>
+      `• ${x.it.produto}: ${moeda(x.it.preco)} — ${x.fora === "abaixo"
+        ? "abaixo do mínimo de " + moeda(x.prod.precoMin)
+        : "acima do máximo de " + moeda(x.prod.precoMax)}`).join("\n");
+    const ok = await confirmar(
+      `${fora.length === 1 ? "Um item está" : fora.length + " itens estão"} fora da faixa que você cadastrou:\n\n${linhas}\n\nSe foi esse o preço que você fechou, é só confirmar.`,
+      { titulo:"Preço fora da faixa", ok:"Está certo, salvar assim" });
+    if(!ok) return;
+  }
 
   const data = document.getElementById("ped_data").value;
   const pgto = document.getElementById("ped_pgto").value.trim();
@@ -493,6 +659,9 @@ function ligarPedidoModal(){
   document.getElementById("pedidoOverlay").addEventListener("click", e => {
     if(e.target.id === "pedidoOverlay") fecharPedidoModal();
   });
+  document.getElementById("pedidoOverlay").addEventListener("click", e => {
+    if(!e.target.closest(".it-prod")) fecharListasProduto();
+  }, true);
 }
 
 
@@ -605,14 +774,18 @@ function renderFicha(card, p){
               </tr>
             </thead>
             <tbody>
-              ${(p.itens||[]).map((it,i) => `
+              ${(p.itens||[]).map((it,i) => {
+                const prod = (typeof produtoPorNome === "function") ? produtoPorNome(it.produto) : null;
+                const cam = prod ? caminhoProduto(prod) : "";
+                return `
                 <tr>
                   <td>${i+1}</td>
-                  <td>${esc(it.produto || "—")}</td>
+                  <td><b>${esc(it.produto || "—")}</b>${cam ? `<span class="fi-cam">${esc(cam)}</span>` : ""}</td>
                   <td class="num">${(Number(it.quantidade)||0).toLocaleString("pt-BR")}</td>
                   <td class="num">${moeda(it.preco)}</td>
                   <td class="num" style="font-weight:700">${moeda(subtotalItem(it))}</td>
-                </tr>`).join("")}
+                </tr>`;
+              }).join("")}
             </tbody>
           </table>
 

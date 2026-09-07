@@ -115,9 +115,11 @@ assets/js/empresa.js       modal de cadastro/edição do cliente
 assets/js/negocio.js       modal do negócio: etapas, atividades, comentários
 assets/js/pedidos.js       aba Pedidos, modal do pedido, ficha em PDF
 assets/js/agenda.js        painel Hoje / Amanhã / Período
-assets/js/relatorios.js    relatório de vendas e comissões, relatório de clientes
+assets/js/relatorios.js    relatórios: vendas e comissões, clientes e produtos
 assets/js/segmentos.js     segmentos do negócio: cadastro por funil, chips no
                            cartão e filtro do quadro (segmento, estado, cidade)
+assets/js/produtos.js      tabela de preços do funil: linhas, sublinhas, produtos
+                           com mínimo/médio/máximo e a anotação particular
 assets/js/exportar-agendor.js  exporta .xlsx (histórico: era p/ importar no Agendor)
 assets/js/usuario.js       menu do representante e menu de funis
 assets/js/main.js          amarra tudo, atalhos de teclado, escolhe banco ou arquivo
@@ -126,6 +128,7 @@ img/                       logos e ícones (ver img/LOGO-COMO-USAR.md)
 banco/schema.sql           esquema do Postgres (rodar no SQL Editor do Supabase)
 banco/atualizar-campos.sql      migração: campos novos do cliente
 banco/atualizar-segmentos.sql   migração: tabelas de segmento (rodar uma vez)
+banco/atualizar-produtos.sql    migração: tabela de preços (rodar uma vez)
 banco/migrar.js            importa um crm-dados.json para o banco (Node + pg)
 testes/                    suítes de verificação (ver seção 9)
 
@@ -135,8 +138,8 @@ publicar.bat               dois cliques: envia as alterações para o GitHub
 
 **Ordem dos scripts em `index.html` importa** (escopo global compartilhado):
 supabase → config → auth → xlsx → util → storage → banco → board → empresa →
-negocio → pedidos → relatorios → segmentos → agenda → exportar-agendor →
-usuario → main.
+negocio → pedidos → relatorios → segmentos → produtos → agenda →
+exportar-agendor → usuario → main.
 
 ---
 
@@ -213,13 +216,15 @@ dados = {
 
 ### 4.2 O banco
 
-`banco/schema.sql` cria 14 tabelas: `perfis`, `representadas`, `funis`, `etapas`,
+`banco/schema.sql` cria 16 tabelas: `perfis`, `representadas`, `funis`, `etapas`,
 `clientes`, `pessoas`, `negocios`, `atividades`, `pedidos`, `pedido_itens`,
-`comentarios`, `opcoes`, `segmentos`, `negocio_segmentos`. Mais 3 views de
-relatório: `v_pedidos`, `v_comissao_mensal`, `v_funil_resumo`.
+`comentarios`, `opcoes`, `segmentos`, `negocio_segmentos`, `linhas_produto`,
+`produtos`. Mais 3 views de relatório: `v_pedidos`, `v_comissao_mensal`,
+`v_funil_resumo`.
 
-Quem já tem o banco criado não roda o `schema.sql` de novo: roda a migração
-`banco/atualizar-segmentos.sql`, que cria só as duas tabelas novas.
+Quem já tem o banco criado não roda o `schema.sql` de novo: roda as migrações
+`banco/atualizar-segmentos.sql` e `banco/atualizar-produtos.sql`, que criam só
+as tabelas novas.
 
 Decisões do esquema, todas deliberadas:
 
@@ -241,6 +246,21 @@ Decisões do esquema, todas deliberadas:
   de ligação (chave primária composta), então um negócio aceita nenhum, um ou
   vários segmentos. Não foi reaproveitada a tabela `opcoes` de propósito: ela
   não tem cor, não é amarrada a funil e só guarda um valor por campo.
+- **Produto é do funil, e o item do pedido continua sendo texto.** A tabela de
+  preços (`linhas_produto` + `produtos`) é por funil; o item do pedido guarda o
+  NOME do produto, como sempre guardou. Isso mantém os pedidos antigos válidos
+  e deixa o dono digitar um produto que não está cadastrado. A ligação entre o
+  item e o produto é feita pelo nome (`chaveTexto`, sem acento e sem caixa), e
+  renomear um produto no cadastro renomeia o nome nos pedidos, para a ligação
+  não se perder.
+- **Sublinha é uma linha com `pai_id`** — dois níveis na mesma tabela. Apagar a
+  linha NÃO apaga produto: `produtos.linha_id` é `on delete set null`, e o
+  produto reaparece em "Sem linha".
+- **Três preços por unidade** (`preco_min`, `preco_med`, `preco_max`). O aviso
+  de preço fora da faixa avisa e deixa salvar — nunca bloqueia. Preço 0 ou faixa
+  não cadastrada nunca avisa.
+- **`observacao` do produto é particular**: aparece só no cadastro. Não entra na
+  ficha em PDF, na aba Pedidos, no relatório nem na planilha — foi pedido assim.
 - **Segmento é opcional.** Negócio sem segmento é o normal e continua igual.
   Se as tabelas novas ainda não existirem no banco, `banco.js` percebe, avisa
   uma vez e segue funcionando sem elas (mesma ideia dos campos novos do

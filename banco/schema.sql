@@ -188,6 +188,37 @@ create table if not exists negocio_segmentos (
 );
 
 -- ---------------------------------------------------------
+-- PRODUTOS DO FUNIL — a tabela de preços de cada representada.
+-- A sublinha é uma linha com "pai_id"; o produto guarda os três
+-- preços (mínimo, médio, máximo) por unidade e uma anotação que
+-- só o representante vê.
+-- ---------------------------------------------------------
+create table if not exists linhas_produto (
+  id        uuid primary key default gen_random_uuid(),
+  owner_id  uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  funil_id  uuid not null references funis(id) on delete cascade,
+  pai_id    uuid references linhas_produto(id) on delete cascade,
+  nome      text not null,
+  posicao   int  not null default 0,
+  criado_em timestamptz not null default now()
+);
+
+create table if not exists produtos (
+  id            uuid primary key default gen_random_uuid(),
+  owner_id      uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  funil_id      uuid not null references funis(id) on delete cascade,
+  linha_id      uuid references linhas_produto(id) on delete set null,
+  nome          text not null,
+  preco_min     numeric(14,2) not null default 0,
+  preco_med     numeric(14,2) not null default 0,
+  preco_max     numeric(14,2) not null default 0,
+  observacao    text default '',
+  posicao       int  not null default 0,
+  criado_em     timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+
+-- ---------------------------------------------------------
 -- ATIVIDADES
 -- ---------------------------------------------------------
 do $$ begin
@@ -275,6 +306,10 @@ create index if not exists ix_clientes_nome on clientes (owner_id, lower(nome));
 create index if not exists ix_pessoas_cli   on pessoas (cliente_id);
 create index if not exists ix_neg_funil     on negocios (funil_id, etapa_id, posicao);
 create index if not exists ix_neg_cliente   on negocios (cliente_id);
+create index if not exists ix_linhas_prod_funil on linhas_produto (funil_id, posicao);
+create index if not exists ix_linhas_prod_pai   on linhas_produto (pai_id);
+create index if not exists ix_produtos_funil    on produtos (funil_id, posicao);
+create index if not exists ix_produtos_linha    on produtos (linha_id);
 create index if not exists ix_segmentos_funil on segmentos (funil_id, posicao);
 create index if not exists ix_segmentos_owner on segmentos (owner_id);
 create index if not exists ix_negseg_negocio  on negocio_segmentos (negocio_id);
@@ -303,7 +338,8 @@ declare t text;
 begin
   foreach t in array array['representadas','funis','etapas','clientes','pessoas',
                            'negocios','atividades','pedidos','pedido_itens',
-                           'comentarios','opcoes','segmentos','negocio_segmentos']
+                           'comentarios','opcoes','segmentos','negocio_segmentos',
+                           'linhas_produto','produtos']
   loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists p_sel on %I', t);

@@ -32,6 +32,8 @@ function dadosPadrao(){
     },
     columns: etapasPadrao().map(name => ({ id: uid(), name })),
     segmentos: [],                     // lista de segmentos DESTE funil
+    linhasProduto: [],                 // linhas e sublinhas da tabela de preços
+    produtos: [],                      // produtos do funil, com mínimo/médio/máximo
     cards: []
   };
 }
@@ -82,6 +84,36 @@ function normalizar(raw){
         nome: s.nome || "Sem nome",
         cor: corDeSegmento(s.cor),
         posicao: Number(s.posicao) || i
+      }))
+    : [];
+
+  /* linhas e sublinhas da tabela de preços (sublinha = tem paiId) */
+  d.linhasProduto = Array.isArray(raw && raw.linhasProduto)
+    ? raw.linhasProduto.map((l,i) => ({
+        id: l.id || uid(),
+        paiId: l.paiId || null,
+        nome: l.nome || "Sem nome",
+        posicao: Number(l.posicao) || i,
+        criadoEm: l.criadoEm || new Date().toISOString()
+      }))
+    : [];
+  const idsLinha = new Set(d.linhasProduto.map(l => l.id));
+  d.linhasProduto.forEach(l => { if(l.paiId && !idsLinha.has(l.paiId)) l.paiId = null; });
+
+  /* produtos do funil: três preços por unidade + anotação particular.
+     Produto de linha excluída não se perde: fica sem linha. */
+  d.produtos = Array.isArray(raw && raw.produtos)
+    ? raw.produtos.map((p,i) => ({
+        id: p.id || uid(),
+        linhaId: (p.linhaId && idsLinha.has(p.linhaId)) ? p.linhaId : null,
+        nome: p.nome || "Sem nome",
+        precoMin: Number(p.precoMin) || 0,
+        precoMed: Number(p.precoMed) || 0,
+        precoMax: Number(p.precoMax) || 0,
+        observacao: p.observacao || "",
+        posicao: Number(p.posicao) || i,
+        criadoEm: p.criadoEm || new Date().toISOString(),
+        atualizadoEm: p.atualizadoEm || new Date().toISOString()
       }))
     : [];
 
