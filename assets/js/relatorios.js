@@ -316,11 +316,7 @@ let relCliCidade = "todas";
 let relCliOrdem  = "nome";
 
 /* ---------------- apoio ---------------- */
-/** Chave sem acento e sem caixa, para comparar nomes de cidade. */
-function chaveTexto(s){
-  return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .trim().toLowerCase();
-}
+/* chaveTexto() (comparar cidade sem acento) fica em util.js */
 
 function nomeEtapa(columnId){
   const col = dados.columns.find(c => c.id === columnId);

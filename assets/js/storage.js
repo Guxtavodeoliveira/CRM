@@ -31,6 +31,7 @@ function dadosPadrao(){
       produtos: []
     },
     columns: etapasPadrao().map(name => ({ id: uid(), name })),
+    segmentos: [],                     // lista de segmentos DESTE funil
     cards: []
   };
 }
@@ -48,6 +49,7 @@ function cardPadrao(){
     email: "", whatsapp: "", telefone: "", celular: "", fax: "", ramal: "", website: "",
     cep: "", pais: "Brasil", estado: "", cidade: "", bairro: "", rua: "", numero_end: "", complemento: "",
     produtos: [], pessoas: [],
+    segmentos: [],                    // ids dos segmentos do funil (zero, um ou vários)
     redes: { facebook:"", twitter:"", linkedin:"", skype:"", instagram:"" },
     valor: 0, status: "andamento", estrelas: 0,
     motivoPerda: "", descricaoPerda: "",
@@ -72,6 +74,16 @@ function normalizar(raw){
     d.columns = base.columns;
   }
   d.columns = d.columns.map(c => ({ id: c.id || uid(), name: c.name || "Sem nome" }));
+
+  /* segmentos do funil: nome + cor, sempre com cor válida */
+  d.segmentos = Array.isArray(raw && raw.segmentos)
+    ? raw.segmentos.map((s,i) => ({
+        id: s.id || uid(),
+        nome: s.nome || "Sem nome",
+        cor: corDeSegmento(s.cor),
+        posicao: Number(s.posicao) || i
+      }))
+    : [];
 
   if(!Array.isArray(d.cards)) d.cards = [];
   let maxNum = 0;
@@ -99,6 +111,10 @@ function normalizar(raw){
       })) : []
     })) : [];
     card.posicao = Number(card.posicao) || 0;
+    // segmento é opcional: fica vazio no que é antigo, e ids órfãos somem
+    card.segmentos = Array.isArray(c.segmentos)
+      ? c.segmentos.filter(id => d.segmentos.some(s => s.id === id))
+      : [];
 
     card.pedidos = Array.isArray(c.pedidos) ? c.pedidos.map(p => ({
       id: p.id || uid(),

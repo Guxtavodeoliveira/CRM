@@ -77,6 +77,28 @@ prioridade. Uma linha roxa mostra onde ele vai entrar. A ordem fica salva no arq
 então ela volta igual quando você reabrir ou migrar de computador. Arrastando para outra
 coluna, ele também entra na altura em que você soltar.
 
+**Segmentos** (botão na barra, ao lado de *Relatórios*)
+Cada funil tem a sua própria lista de segmentos — no funil da PRICOREL pode ser
+*Sublimação*, *Esporte*, *Confecção*; no da NST Print pode ser outra lista, ou
+nenhuma. Em *Segmentos* você escreve o nome, escolhe uma das 8 cores e clica em
+*Adicionar segmento*. Na lista de baixo dá para editar ou excluir; ao excluir um
+segmento que está em uso, o sistema avisa quantos negócios usam e, se você
+confirmar, ele só sai desses negócios — nada mais é apagado.
+
+**Segmento no cartão**
+- No pé do cartão aparece **+ adicionar segmento**. Clique e marque quantos
+  quiser (dá para marcar mais de um sem fechar a janelinha).
+- Quem já tem segmento mostra as etiquetas coloridas lado a lado, com um **x**
+  em cada uma para tirar aquele segmento e um **+** para acrescentar outro.
+- Negócio sem segmento continua funcionando normalmente — é opcional.
+
+**Filtrar o funil** (barra logo abaixo da busca)
+- **Segmento**: marque um ou vários. Marcando vários, aparece quem tiver
+  **pelo menos um** deles.
+- **Estado** e **Cidade**: a cidade só oferece as do estado escolhido.
+- Os três filtros valem juntos, e o filtro só esconde cartões na tela — nenhum
+  dado é alterado. *Limpar filtros* volta tudo.
+
 **Relatórios** (botão na barra)
 Abre um menu com os relatórios disponíveis.
 
@@ -167,8 +189,9 @@ assets/js/negocio.js  modal do negócio, agendamentos e comentários
 assets/js/agenda.js   painel Hoje / Amanhã
 assets/js/pedidos.js  aba Pedidos: pedido atual, histórico e itens
 assets/js/relatorios.js  relatórios, impressão em PDF e Excel
+assets/js/segmentos.js   segmentos do negócio, etiquetas no cartão e filtro
 img/                  logo, favicon e ícones
-banco/                schema.sql e migrar.js (para quando ligar o Supabase)
+banco/                schema.sql, as migrações .sql e migrar.js (Supabase)
 assets/js/main.js     inicialização e atalhos
 ```
 

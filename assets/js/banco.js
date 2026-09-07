@@ -36,6 +36,43 @@ function erroBanco(e, oque){
 }
 
 /* =========================================================
+   SEGMENTOS — tabelas novas (banco/atualizar-segmentos.sql).
+   Enquanto elas não existirem no Supabase, o sistema segue
+   funcionando normalmente, só sem gravar segmento na nuvem.
+   ========================================================= */
+let temSegmentos = true;
+let avisouSegmentos = false;
+
+function faltaTabelaSegmentos(e){
+  const msg = ((e && e.message) || "") + " " + ((e && e.details) || "") + " " + ((e && e.hint) || "");
+  return /segmentos|negocio_segmentos/i.test(msg)
+      || (e && (e.code === "42P01" || e.code === "PGRST205" || e.code === "PGRST204"));
+}
+
+function avisarSegmentos(){
+  if(avisouSegmentos) return;
+  avisouSegmentos = true;
+  toast("Os segmentos ainda não vão para a nuvem: rode o arquivo banco/atualizar-segmentos.sql no Supabase.", "err");
+}
+
+/** Lê a lista do funil e os vínculos. Banco antigo: devolve vazio. */
+async function lerSegmentos(funilId){
+  try{
+    const [s, v] = await Promise.all([
+      sb.from("segmentos").select("*").eq("funil_id", funilId).order("posicao"),
+      sb.from("negocio_segmentos").select("*")
+    ]);
+    if(s.error) throw s.error;
+    if(v.error) throw v.error;
+    return { segmentos: s.data || [], vinculos: v.data || [] };
+  }catch(e){
+    temSegmentos = false;
+    console.warn("segmentos ainda não existem no banco:", (e && e.message) || e);
+    return { segmentos: [], vinculos: [] };
+  }
+}
+
+/* =========================================================
    CARREGAR
    ========================================================= */
 async function carregarDoBanco(){
@@ -102,6 +139,13 @@ async function carregarDoBanco(){
   const mapaOp = { categoria:"categorias", origem:"origens", setor:"setores", produto:"produtos" };
   (opcoes.data||[]).forEach(o => { const k = mapaOp[o.tipo]; if(k) listas[k].push(o.valor); });
 
+  const seg = await lerSegmentos(funilAtual.id);
+  const segIds = new Set(seg.segmentos.map(s => s.id));
+  const segsPorNeg = {};
+  seg.vinculos.forEach(v => {
+    if(segIds.has(v.segmento_id)) (segsPorNeg[v.negocio_id] ||= []).push(v.segmento_id);
+  });
+
   const perfil = await carregarPerfil();
   const nomeUsuario = (perfil && perfil.nome) || user.email.split("@")[0];
   if(!listas.responsaveis.length) listas.responsaveis = [nomeUsuario];
@@ -113,6 +157,9 @@ async function carregarDoBanco(){
     usuario: nomeUsuario,
     listas,
     columns: (etapas.data||[]).map(e => ({ id:e.id, name:e.nome })),
+    segmentos: seg.segmentos.map(s => ({
+      id:s.id, nome:s.nome || "", cor:corDeSegmento(s.cor), posicao:Number(s.posicao) || 0
+    })),
     cards: (negocios.data||[]).map(n => {
       const c = cliPorId.get(n.cliente_id) || {};
       return {
@@ -138,6 +185,7 @@ async function carregarDoBanco(){
         numero_end: c.numero || "", complemento: c.complemento || "",
         redes: c.redes || { facebook:"",twitter:"",linkedin:"",skype:"",instagram:"" },
         produtos: [],
+        segmentos: (segsPorNeg[n.id] || []),
         pessoas: (pessoasPorCli[n.cliente_id]||[]).map(p => ({
           id:p.id, nome:p.nome||"", cargo:p.cargo||"", email:p.email||"",
           celular:p.celular||"", whatsapp:p.whatsapp||"", telefone:p.telefone||""
@@ -424,6 +472,9 @@ async function sincronizar(){
     if(opNovas.length){
       await sb.from("opcoes").upsert(opNovas, { onConflict:"owner_id,tipo,valor", ignoreDuplicates:true });
     }
+    /* segmentos: só aqui, depois que os negócios novos já existem no banco
+       (o vínculo aponta para o negócio, então o pai tem que vir antes) */
+    await gravarSegmentos(antes, agora, own, fid);
     // negócios e clientes excluídos: por último, para não derrubar filhos antes
     if(dNeg.apagar.length){
       const { error } = await sb.from("negocios").delete().in("id", dNeg.apagar);
@@ -444,6 +495,55 @@ async function sincronizar(){
   }finally{
     sincronizando = false;
     if(novaSincPendente){ novaSincPendente = false; setTimeout(sincronizar, 200); }
+  }
+}
+
+/**
+ * Grava a lista de segmentos do funil e, para cada negócio que
+ * mudou, refaz os vínculos (apaga os dele e regrava). É simples e
+ * não deixa sobra, já que a tabela não tem id próprio.
+ */
+async function gravarSegmentos(antes, agora, own, fid){
+  const dSeg = diferenca(antes.segmentos || [], agora.segmentos || [], s => ({
+    id: s.id, owner_id: own, funil_id: fid,
+    nome: s.nome || "", cor: s.cor || "", posicao: Number(s.posicao) || 0
+  }));
+  const chave = c => (c.segmentos || []).slice().sort().join(",");
+  const mapaAntes = new Map((antes.cards || []).map(c => [c.id, chave(c)]));
+  const mudaram = (agora.cards || []).filter(c => (mapaAntes.get(c.id) || "") !== chave(c));
+
+  // nada de segmento mudou: não custa nada e não avisa à toa
+  if(!dSeg.gravar.length && !dSeg.apagar.length && !mudaram.length) return;
+
+  // o SQL novo ainda não foi rodado: avisa uma vez e segue a vida
+  if(!temSegmentos){ avisarSegmentos(); return; }
+
+  try{
+    if(dSeg.gravar.length){
+      const { error } = await sb.from("segmentos").upsert(dSeg.gravar);
+      if(error) throw error;
+    }
+
+    for(const c of mudaram){
+      const { error: e1 } = await sb.from("negocio_segmentos").delete().eq("negocio_id", c.id);
+      if(e1) throw e1;
+      const linhas = (c.segmentos || []).map(sid => ({
+        negocio_id: c.id, segmento_id: sid, owner_id: own
+      }));
+      if(linhas.length){
+        const { error: e2 } = await sb.from("negocio_segmentos").upsert(linhas);
+        if(e2) throw e2;
+      }
+    }
+
+    // excluídos por último: o vínculo cai junto (on delete cascade)
+    if(dSeg.apagar.length){
+      const { error } = await sb.from("segmentos").delete().in("id", dSeg.apagar);
+      if(error) throw error;
+    }
+  }catch(e){
+    if(faltaTabelaSegmentos(e)){ temSegmentos = false; avisarSegmentos(); return; }
+    throw e;
   }
 }
 

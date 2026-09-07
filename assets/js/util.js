@@ -13,6 +13,27 @@ const ACT_TYPES = {
   visita:   { label:"Visita",   color:"#E0912F", icon:"pin" },
 };
 
+/* ---------- cores dos segmentos do negócio ----------
+   Paleta fixa: o usuário escolhe uma destas ao cadastrar um
+   segmento. É de propósito que não exista seletor livre de cor,
+   para o funil continuar legível e sem duas cores parecidas. */
+const CORES_SEGMENTO = [
+  { nome:"Azul",     cor:"#3A6EA5" },
+  { nome:"Verde",    cor:"#2E7D5B" },
+  { nome:"Roxo",     cor:"#6B54A5" },
+  { nome:"Vermelho", cor:"#B3453F" },
+  { nome:"Laranja",  cor:"#B5822B" },
+  { nome:"Rosa",     cor:"#A85B7A" },
+  { nome:"Turquesa", cor:"#2F7B82" },
+  { nome:"Grafite",  cor:"#5B6470" }
+];
+const COR_SEGMENTO_PADRAO = CORES_SEGMENTO[0].cor;
+
+/** Devolve sempre uma cor válida (#rrggbb), mesmo em dado antigo. */
+function corDeSegmento(cor){
+  return /^#[0-9a-fA-F]{6}$/.test(String(cor || "")) ? String(cor) : COR_SEGMENTO_PADRAO;
+}
+
 /* ---------- ícones (traço, 24x24) ---------- */
 const ICON_PATHS = {
   note:  '<path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M15 3v5h5"/><path d="M8 13h8M8 17h5"/>',
@@ -78,6 +99,13 @@ function esc(s){
   return String(s == null ? "" : s).replace(/[&<>"']/g, c => (
     {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]
   ));
+}
+
+/* ---------- texto ---------- */
+/** Chave sem acento e sem caixa, para comparar nomes (cidade, segmento...). */
+function chaveTexto(s){
+  return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .trim().toLowerCase();
 }
 
 /* ---------- moeda ---------- */

@@ -1313,3 +1313,97 @@ select.inp{appearance:none;}
 .ped-total-linha.comis .ped-total-lbl{color:#1F6449;}
 .ped-total-val.comis{color:#1F6449;}
 .fi-comis{background:var(--green-50);border-color:#C3DED2;color:#1F6449;}
+
+/* =========================================================
+   Segmentos: barra de filtro, chips no cartão e cadastro
+   ========================================================= */
+
+/* ---- barra de filtro do quadro ---- */
+.filtros{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:0 16px 12px;
+}
+.filtros-lbl{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--muted-2);
+}
+.filtros .btn{font-size:12.5px;padding:6px 11px;}
+#fSegBtn.on{background:var(--brand-700);color:var(--ouro);}
+.filtro-sel{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:700;color:var(--muted);
+}
+.filtro-sel .inp{
+  padding:6px 26px 6px 9px;font-size:12.5px;width:auto;max-width:190px;
+  background:#fff;border-color:var(--line);
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6B7B' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+}
+.filtros-info{font-size:12px;color:var(--muted-2);}
+
+/* uma opção do seletor de segmentos (filtro e cartão) */
+.seg-op{
+  display:flex;align-items:center;gap:9px;
+  padding:7px 10px;border-radius:var(--r-sm);
+  font-size:13.5px;color:var(--ink-2);cursor:pointer;
+}
+.seg-op:hover{background:var(--brand-50);}
+.seg-op input{accent-color:var(--brand);width:15px;height:15px;flex:0 0 15px;}
+.seg-cor{width:10px;height:10px;border-radius:3px;flex:0 0 10px;}
+
+/* ---- chips no cartão ---- */
+.card-segs{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:7px;}
+.seg-chip{
+  display:inline-flex;align-items:center;gap:4px;max-width:100%;
+  font-size:10.5px;font-weight:700;line-height:1;
+  padding:3px 6px;border-radius:20px;
+}
+.seg-chip-txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.seg-x{
+  border:none;background:none;color:inherit;opacity:.55;
+  padding:0;line-height:0;border-radius:50%;
+}
+.seg-x:hover{opacity:1;}
+.seg-add{
+  border:none;background:none;color:var(--muted-2);
+  font-size:11px;font-weight:600;padding:1px 0;border-radius:var(--r-sm);
+}
+.seg-add:hover{color:var(--brand);text-decoration:underline;}
+.seg-mais{
+  border:1px dashed var(--line);background:transparent;color:var(--muted-2);
+  width:19px;height:19px;border-radius:50%;padding:0;line-height:0;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.seg-mais:hover{border-color:var(--brand);color:var(--brand);border-style:solid;}
+
+/* ---- seletor flutuante do cartão ---- */
+.seg-pop{min-width:236px;max-height:320px;overflow-y:auto;}
+.seg-pop .seg-cad{
+  width:100%;display:flex;align-items:center;gap:9px;
+  border:none;background:transparent;text-align:left;
+  padding:8px 10px;border-radius:var(--r-sm);
+  font-size:13px;color:var(--ink-2);font-weight:500;
+}
+.seg-pop .seg-cad:hover{background:var(--brand-50);color:var(--brand);}
+.seg-pop .seg-cad .ic{line-height:0;opacity:.85;}
+.seg-pop hr{border:none;border-top:1px solid var(--line-2);margin:5px 4px;}
+
+/* ---- cadastro (modal) ---- */
+.seg-paleta{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 6px;}
+.seg-swatch{
+  width:30px;height:30px;border-radius:50%;border:2px solid transparent;
+  display:inline-flex;align-items:center;justify-content:center;
+  color:#fff;line-height:0;box-shadow:var(--sh-1);
+}
+.seg-swatch.on{border-color:var(--brand-700);transform:scale(1.06);}
+.seg-linha{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 4px;border-bottom:1px solid var(--line-2);
+}
+.seg-linha:last-child{border-bottom:none;}
+.seg-linha.editando{background:var(--brand-50);border-radius:var(--r-sm);}
+.seg-linha .seg-chip{font-size:12px;padding:4px 9px;}
+.seg-uso{margin-left:auto;font-size:11.5px;color:var(--muted-2);}
+.seg-linha .icon-btn.perigo:hover{background:var(--red-50);color:var(--red);}

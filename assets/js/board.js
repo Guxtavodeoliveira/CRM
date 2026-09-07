@@ -79,6 +79,7 @@ function render(){
 
   ligarEventosBoard();
   atualizarContadoresAgenda();
+  if(typeof renderFiltrosBoard === "function") renderFiltrosBoard();
   if(typeof renderMenuFunis === "function") renderMenuFunis();
 }
 
@@ -165,6 +166,8 @@ function valorCartao(card){
 function cardsFiltrados(){
   const busca = (document.getElementById("searchInput").value || "").trim().toLowerCase();
   return dados.cards.filter(c => {
+    // filtro da barra: segmento (OU entre eles), estado e cidade
+    if(typeof cartaoPassaNoFiltro === "function" && !cartaoPassaNoFiltro(c)) return false;
     if(!busca) return true;
     const alvo = [c.nome, c.razaoSocial, c.cnpj, c.inscricaoEstadual, c.responsavelEmpresa,
                   c.whatsapp, c.telefone, c.celular, c.email, c.cidade,
@@ -208,7 +211,10 @@ function renderCard(card){
 ${(() => { const v = valorCartao(card); return v ? `<div class="card-value">${moeda(v)}</div>` : ""; })()}
     ${badge}
     ${tags.length ? `<div class="card-tags">${tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div>` : ""}
+    ${typeof htmlSegmentosCartao === "function" ? htmlSegmentosCartao(card) : ""}
   `;
+
+  if(typeof ligarSegmentosCartao === "function") ligarSegmentosCartao(el, card);
 
   el.addEventListener("dragstart", () => { arrastando = card.id; el.classList.add("dragging"); });
   el.addEventListener("dragend", () => {

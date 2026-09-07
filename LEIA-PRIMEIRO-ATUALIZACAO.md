@@ -25,6 +25,23 @@ Assim os arquivos são trocados e o `.git` continua no lugar.
 
 ---
 
+## PRIMEIRO: rode o SQL novo no Supabase
+
+Esta versão tem **duas tabelas novas** no banco. Antes de publicar, faça isto
+uma vez (leva 30 segundos):
+
+1. Entre em https://supabase.com e abra o seu projeto.
+2. Menu da esquerda → **SQL Editor** → **New query**.
+3. Abra o arquivo **`banco/atualizar-segmentos.sql`** (Bloco de Notas serve),
+   copie tudo e cole na janela.
+4. Clique em **Run**. Tem que aparecer *Success*.
+
+Pode rodar de novo sem medo: nada é apagado. Se você publicar antes de rodar,
+o CRM continua funcionando normalmente — só avisa que os segmentos ainda não
+estão indo para a nuvem.
+
+---
+
 ## Publicar
 
 Dois cliques no **`publicar.bat`**. Ele pergunta uma descrição da mudança
@@ -38,34 +55,45 @@ antiga que ele guarda em cache.
 
 ## O que mudou nesta versão
 
-**Novo relatório de clientes.** No botão *Relatórios*, agora tem duas opções:
-*Vendas e comissões* (a que já existia) e *Clientes*.
+**Segmentos do negócio.** Agora cada negócio pode receber um ou vários
+segmentos coloridos (por exemplo: Sublimação, Esporte, Confecção), e o funil
+ganhou um filtro.
 
-O relatório de clientes abre com três filtros, todos começando em **Todos**:
+**Cada funil tem a sua lista.** Os segmentos da PRICOREL não aparecem no funil
+da NST Print, e vice-versa.
 
-- **Etapa** — todas as colunas do funil, ou apenas uma delas.
-- **Estado** — só aparecem os estados onde você realmente tem cliente.
-- **Cidade** — quando você escolhe um estado, a lista passa a mostrar só as
-  cidades daquele estado. Trocar de estado solta a cidade automaticamente.
+**Botão *Segmentos*, na barra, ao lado de *Relatórios*.** Abre a janela onde
+você cadastra: escreve o nome, escolhe uma das **8 cores** e clica em
+*Adicionar segmento*. Na lista de baixo dá para **editar** (lápis) ou
+**excluir** (lixeira). Ao excluir um segmento que está em uso, ele avisa
+quantos negócios usam; confirmando, o segmento só sai desses negócios —
+nenhum negócio é apagado.
 
-E um seletor de **Ordenar por**, com quatro opções: nome (A→Z),
-cidade/estado, etapa do funil e cadastro mais recente.
+**No cartão do funil:**
 
-A lista traz: número do cliente, nome, CNPJ, telefone, cidade/estado e, na
-última coluna, **em qual etapa do funil ele está**. Sai em PDF pelo botão
-*Imprimir* e em planilha pelo botão *Excel*.
+- quem não tem segmento mostra **+ adicionar segmento** no rodapé;
+- ao clicar, abre a listinha do funil e você **marca quantos quiser** (a
+  janelinha não fecha a cada clique);
+- quem já tem aparece com as etiquetas coloridas lado a lado, cada uma com um
+  **x** para tirar aquela, e um **+** ao lado para acrescentar outra;
+- negócio sem segmento continua funcionando igual — é opcional, e os negócios
+  antigos não mudaram em nada.
 
-Detalhes que valem saber:
+**Filtro do funil** (barra nova, logo abaixo da busca):
 
-- Quem não tem telefone fixo aparece com o celular ou o WhatsApp.
-- Quem está sem endereço aparece com um traço e, na ordenação por
-  cidade/estado, vai para o fim da lista.
-- O botão **Limpar filtros** devolve tudo para "Todos".
+- **Segmento** — marque um ou vários. Marcando vários, aparece quem tiver
+  **pelo menos um** deles (não precisa ter todos).
+- **Estado** — só os estados onde você realmente tem cliente.
+- **Cidade** — só as cidades do estado escolhido; trocar de estado solta a
+  cidade, igual ao relatório de clientes.
+- Os três funcionam juntos. O filtro só **esconde cartões na tela**: nenhum
+  dado é alterado. *Limpar filtros* devolve tudo.
 
 ---
 
 ## Ainda pendente do pacote anterior
 
-Se você ainda não rodou o **`banco/atualizar-campos.sql`** no Supabase, faça
-isso: SQL Editor → New query → colar o conteúdo do arquivo → Run. Sem ele, a
+Se você ainda não rodou o **`banco/atualizar-campos.sql`** no Supabase, rode
+também: SQL Editor → New query → colar o conteúdo do arquivo → Run. Sem ele, a
 inscrição estadual e os dados bancários do cliente não são salvos na nuvem.
+São dois arquivos diferentes e um não substitui o outro.

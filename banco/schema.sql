@@ -164,6 +164,30 @@ create table if not exists negocios (
 );
 
 -- ---------------------------------------------------------
+-- SEGMENTOS — a lista de segmentos de CADA funil (com cor).
+-- Um negócio pode ter nenhum, um ou vários segmentos.
+-- Não confundir com "opcoes": aquilo é sugestão de digitação,
+-- isto é do funil, tem cor e aceita mais de um por negócio.
+-- ---------------------------------------------------------
+create table if not exists segmentos (
+  id        uuid primary key default gen_random_uuid(),
+  owner_id  uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  funil_id  uuid not null references funis(id) on delete cascade,
+  nome      text not null,
+  cor       text not null default '#3A6EA5',
+  posicao   int  not null default 0,
+  criado_em timestamptz not null default now()
+);
+
+create table if not exists negocio_segmentos (
+  negocio_id  uuid not null references negocios(id)  on delete cascade,
+  segmento_id uuid not null references segmentos(id) on delete cascade,
+  owner_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  criado_em   timestamptz not null default now(),
+  primary key (negocio_id, segmento_id)
+);
+
+-- ---------------------------------------------------------
 -- ATIVIDADES
 -- ---------------------------------------------------------
 do $$ begin
@@ -251,6 +275,10 @@ create index if not exists ix_clientes_nome on clientes (owner_id, lower(nome));
 create index if not exists ix_pessoas_cli   on pessoas (cliente_id);
 create index if not exists ix_neg_funil     on negocios (funil_id, etapa_id, posicao);
 create index if not exists ix_neg_cliente   on negocios (cliente_id);
+create index if not exists ix_segmentos_funil on segmentos (funil_id, posicao);
+create index if not exists ix_segmentos_owner on segmentos (owner_id);
+create index if not exists ix_negseg_negocio  on negocio_segmentos (negocio_id);
+create index if not exists ix_negseg_segmento on negocio_segmentos (segmento_id);
 create index if not exists ix_ativ_negocio  on atividades (negocio_id);
 create index if not exists ix_ativ_agenda   on atividades (owner_id, prazo) where not concluido;
 create index if not exists ix_pedidos_neg   on pedidos (negocio_id);
@@ -275,7 +303,7 @@ declare t text;
 begin
   foreach t in array array['representadas','funis','etapas','clientes','pessoas',
                            'negocios','atividades','pedidos','pedido_itens',
-                           'comentarios','opcoes']
+                           'comentarios','opcoes','segmentos','negocio_segmentos']
   loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists p_sel on %I', t);

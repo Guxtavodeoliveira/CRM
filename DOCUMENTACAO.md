@@ -105,7 +105,8 @@ assets/js/vendor/xlsx.mini.min.js    SheetJS (gera .xlsx no navegador)
 assets/js/config.js        URL e chave pública do Supabase; cria o cliente `sb`
 assets/js/auth.js          login, cadastro, recuperação, força de senha, perfil
 assets/js/util.js          uid (UUID), datas, moeda, máscaras, ícones, toast,
-                           confirmar(), pedirTexto(), ACT_TYPES
+                           confirmar(), pedirTexto(), chaveTexto(), ACT_TYPES,
+                           CORES_SEGMENTO (paleta fixa dos segmentos)
 assets/js/storage.js       modelo de dados, normalização/migração, gravação em
                            arquivo .json (modo local) e roteamento p/ o banco
 assets/js/banco.js         carrega do Supabase e sincroniza de volta; vários funis
@@ -114,13 +115,17 @@ assets/js/empresa.js       modal de cadastro/edição do cliente
 assets/js/negocio.js       modal do negócio: etapas, atividades, comentários
 assets/js/pedidos.js       aba Pedidos, modal do pedido, ficha em PDF
 assets/js/agenda.js        painel Hoje / Amanhã / Período
-assets/js/relatorios.js    relatório de vendas e comissões, impressão, Excel
+assets/js/relatorios.js    relatório de vendas e comissões, relatório de clientes
+assets/js/segmentos.js     segmentos do negócio: cadastro por funil, chips no
+                           cartão e filtro do quadro (segmento, estado, cidade)
 assets/js/exportar-agendor.js  exporta .xlsx (histórico: era p/ importar no Agendor)
 assets/js/usuario.js       menu do representante e menu de funis
 assets/js/main.js          amarra tudo, atalhos de teclado, escolhe banco ou arquivo
 
 img/                       logos e ícones (ver img/LOGO-COMO-USAR.md)
 banco/schema.sql           esquema do Postgres (rodar no SQL Editor do Supabase)
+banco/atualizar-campos.sql      migração: campos novos do cliente
+banco/atualizar-segmentos.sql   migração: tabelas de segmento (rodar uma vez)
 banco/migrar.js            importa um crm-dados.json para o banco (Node + pg)
 testes/                    suítes de verificação (ver seção 9)
 
@@ -130,7 +135,8 @@ publicar.bat               dois cliques: envia as alterações para o GitHub
 
 **Ordem dos scripts em `index.html` importa** (escopo global compartilhado):
 supabase → config → auth → xlsx → util → storage → banco → board → empresa →
-negocio → pedidos → relatorios → agenda → exportar-agendor → usuario → main.
+negocio → pedidos → relatorios → segmentos → agenda → exportar-agendor →
+usuario → main.
 
 ---
 
@@ -207,10 +213,13 @@ dados = {
 
 ### 4.2 O banco
 
-`banco/schema.sql` cria 12 tabelas: `perfis`, `representadas`, `funis`, `etapas`,
+`banco/schema.sql` cria 14 tabelas: `perfis`, `representadas`, `funis`, `etapas`,
 `clientes`, `pessoas`, `negocios`, `atividades`, `pedidos`, `pedido_itens`,
-`comentarios`, `opcoes`. Mais 3 views de relatório: `v_pedidos`,
-`v_comissao_mensal`, `v_funil_resumo`.
+`comentarios`, `opcoes`, `segmentos`, `negocio_segmentos`. Mais 3 views de
+relatório: `v_pedidos`, `v_comissao_mensal`, `v_funil_resumo`.
+
+Quem já tem o banco criado não roda o `schema.sql` de novo: roda a migração
+`banco/atualizar-segmentos.sql`, que cria só as duas tabelas novas.
 
 Decisões do esquema, todas deliberadas:
 
@@ -227,6 +236,15 @@ Decisões do esquema, todas deliberadas:
 - **`legacy_id` em tudo**, com índice único parcial. Permite rodar a migração
   várias vezes sem duplicar (testado com 3 execuções seguidas).
 - **Índice `ix_pedido_atual`**: `unique (negocio_id) where atual`.
+- **Segmento é do funil, não global.** `segmentos` tem `funil_id`: cada
+  representada tem a sua lista, com nome e cor. `negocio_segmentos` é a tabela
+  de ligação (chave primária composta), então um negócio aceita nenhum, um ou
+  vários segmentos. Não foi reaproveitada a tabela `opcoes` de propósito: ela
+  não tem cor, não é amarrada a funil e só guarda um valor por campo.
+- **Segmento é opcional.** Negócio sem segmento é o normal e continua igual.
+  Se as tabelas novas ainda não existirem no banco, `banco.js` percebe, avisa
+  uma vez e segue funcionando sem elas (mesma ideia dos campos novos do
+  cliente).
 - **Comentários numa tabela só**, com `atividade_id` OU `pedido_id`, e um
   `check (num_nonnulls(...) = 1)`.
 
